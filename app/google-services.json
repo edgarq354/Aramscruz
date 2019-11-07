@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "770564051780",
+    "firebase_url": "https://aramscruz-d3ae7.firebaseio.com",
+    "project_id": "aramscruz-d3ae7",
+    "storage_bucket": "aramscruz-d3ae7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:770564051780:android:8f17f4158fa3c6cfb37d11",
+        "android_client_info": {
+          "package_name": "com.elisoft.aramscruz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "770564051780-kgg6urhbtnodgrcaqkk2f2vehkbtlpui.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elisoft.aramscruz",
+            "certificate_hash": "2809813bf2cf855ce217c8fbb348eae3681d0508"
+          }
+        },
+        {
+          "client_id": "770564051780-lncah9a4tf1eo2e40mkakmosk0l5pe44.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5L9CKZlN8WcMjCwwVgVXoFM-Eq5X4B48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "770564051780-lncah9a4tf1eo2e40mkakmosk0l5pe44.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
