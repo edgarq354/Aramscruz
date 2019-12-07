@@ -29,7 +29,7 @@
         android:allowBackup="true"
         android:hardwareAccelerated="false"
         android:icon="@drawable/ic_logo_app"
-        android:label="Radio Movil Clasico (taxi)"
+        android:label="@string/app_name"
         android:largeHeap="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
