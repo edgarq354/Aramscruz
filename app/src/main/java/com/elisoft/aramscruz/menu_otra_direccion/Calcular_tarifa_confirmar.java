@@ -22,9 +22,17 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.Pedido_usuario;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
@@ -57,7 +65,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
@@ -88,7 +98,29 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     LocationManager manager = null;
     AlertDialog alert = null;
 
-    LinearLayout pedi_taxi,pedir_movil_lujo,pedir_movil_maletero,pedir_movil_aire,pedir_movil_pedido, pedir_movil_reserva, buscar_direccion,pedir_moto;
+    LinearLayout
+            pedi_taxi,
+            pedir_movil_lujo,
+            pedir_movil_maletero,
+            pedir_movil_aire,
+            pedir_movil_pedido,
+            pedir_movil_reserva,
+            pedir_moto,
+            ll_solicitar_ahora;
+
+    LinearLayout
+            pedir_movil_normal_seleccion,
+            pedir_movil_lujo_seleccion,
+            pedir_movil_maletero_seleccion,
+            pedir_movil_aire_seleccion,
+            pedir_moto_seleccion;
+
+    ImageView
+            im_movil_normal,
+            im_movil_lujo,
+            im_movil_maletero,
+            im_movil_aire,
+            im_moto;
 
 
     boolean sw_ver_taxi_cerca = false;
@@ -104,6 +136,8 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     AlertDialog alert2 = null;
 
     SharedPreferences mis_datos;
+
+    int clase_vehiculo=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +166,8 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
 
 
+        ll_solicitar_ahora = (LinearLayout) findViewById(R.id.ll_solicitar_ahora);
+
         pedi_taxi = (LinearLayout) findViewById(R.id.pedir_movil);
         pedir_movil_aire = (LinearLayout) findViewById(R.id.pedir_movil_aire);
         pedir_movil_lujo = (LinearLayout) findViewById(R.id.pedir_movil_lujo);
@@ -140,6 +176,19 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_movil_reserva = (LinearLayout) findViewById(R.id.pedir_movil_reserva);
         pedir_moto = (LinearLayout)findViewById(R.id.pedir_moto);
 
+//seleccion
+        pedir_movil_normal_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_normal_seleccion);
+        pedir_movil_aire_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_aire_seleccion);
+        pedir_movil_lujo_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_lujo_seleccion);
+        pedir_movil_maletero_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_maletero_seleccion);
+        pedir_moto_seleccion = (LinearLayout)findViewById(R.id.pedir_moto_seleccion);
+
+        im_movil_normal = (ImageView) findViewById(R.id.im_movil_normal);
+        im_movil_aire = (ImageView) findViewById(R.id.im_movil_aire);
+        im_movil_lujo = (ImageView) findViewById(R.id.im_movil_lujo);
+        im_movil_maletero = (ImageView) findViewById(R.id.im_movil_maletero);
+        im_moto = (ImageView)findViewById(R.id.im_moto);
+//fin seleccion
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -175,6 +224,8 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        ll_solicitar_ahora.setOnClickListener(this);
+
         pedi_taxi.setOnClickListener(this);
         pedir_movil_lujo.setOnClickListener(this);
         pedir_movil_aire.setOnClickListener(this);
@@ -184,8 +235,15 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_moto.setOnClickListener(this);
         cb_tipo_pedido_empresa.setOnClickListener(this);
 
+        //SELECCIONAR
+        pedir_movil_normal_seleccion.setOnClickListener(this);
+        pedir_movil_aire_seleccion.setOnClickListener(this);
+        pedir_movil_lujo_seleccion.setOnClickListener(this);
+        pedir_movil_maletero_seleccion.setOnClickListener(this);
+        pedir_moto_seleccion.setOnClickListener(this);
 
-        hilo_m = new Servicio_ver_movil();
+
+                hilo_m = new Servicio_ver_movil();
 
         actualizar_billetera();
         direccion[0] =obtener_direccion( latitud_inicio,longitud_inicio);
@@ -199,8 +257,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
     public void solicitar_tarifa()
     {
-        Servicio servicio = new Servicio();
-        servicio.execute(getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa", "1", String.valueOf(latitud_inicio), String.valueOf(longitud_inicio), String.valueOf(latitud_fin), String.valueOf(longitud_fin));// parametro que recibe el doinbackground
+          servicio_calcular_tarifa();
 
     }
 
@@ -318,19 +375,286 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     public void marcar_ruta( )
     {
         try{
-            Servicio_taxi_ruta hilo = new Servicio_taxi_ruta();
-            hilo.execute("https://maps.googleapis.com/maps/api/directions/json?origin=" + latitud_inicio + "," + longitud_inicio + "&destination=" + latitud_fin + "," + longitud_fin + "&mode=driving&key=AIzaSyB1h4N5nfpkF1Hg30P88c_1MvH9qG9Tcvs", "4");// parametro que recibe el doinbackground
-
+             servicio_taxi_ruta();
         }catch (Exception e)
         {
 
         }
     }
 
+
+    public void servicio_calcular_tarifa()
+    {
+        //Servicio servicio = new Servicio();
+        //servicio.execute(getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa", "1", String.valueOf(latitud_inicio), String.valueOf(longitud_inicio),String.valueOf(latitud_fin),String.valueOf(longitud_fin));// parametro que recibe el doinbackground
+        pDialog = new ProgressDialog(Calcular_tarifa_confirmar.this);
+        pDialog.setTitle(getString(R.string.app_name));
+        pDialog.setMessage("Calculando la tarifa");
+        pDialog.setIndeterminate(false);
+        pDialog.setCancelable(false);
+        pDialog.show();
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("latitud_inicio", String.valueOf(latitud_inicio));
+            jsonParam.put("longitud_inicio", String.valueOf(longitud_inicio));
+            jsonParam.put("latitud_fin", String.valueOf(latitud_fin));
+            jsonParam.put("longitud_fin", String.valueOf(longitud_fin));
+
+            String url=getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
+                            String metros,minuto,normal,de_lujo,con_aire,maletero,pedido,reserva,moto,moto_pedido;
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    metros=respuestaJSON.getString("metros");
+                                    minuto=respuestaJSON.getString("minutos");
+                                    normal=respuestaJSON.getString("normal");
+                                    de_lujo=respuestaJSON.getString("de_lujo");
+                                    con_aire=respuestaJSON.getString("con_aire");
+                                    maletero=respuestaJSON.getString("maletero");
+                                    pedido=respuestaJSON.getString("pedido");
+                                    reserva=respuestaJSON.getString("reserva");
+                                    moto=respuestaJSON.getString("moto");
+                                    moto_pedido=respuestaJSON.getString("moto_pedido");
+
+
+                                    //final
+                                    int minuto1= Integer.parseInt(minuto);
+                                    int distancia= Integer.parseInt(metros);
+                                    int km=distancia/1000;
+                                    int m=distancia%1000;
+                                    if(distancia<1000)
+                                    {
+                                        tv_monto_distancia.setText("Mt. "+ metros);
+                                    }else{
+                                        tv_monto_distancia.setText("Km. "+ km+"."+m);
+                                    }
+
+
+                                    tv_monto_tiempo.setText("Hrs. "+ formatearMinutosAHoraMinuto(minuto1));
+
+                                    tv_monto_tiempo.setText("Hrs. "+ formatearMinutosAHoraMinuto(minuto1));
+                                    tv_tarifa_normal.setText(  normal+" BOB");
+                                    tv_tarifa_de_lujo.setText("Bs. "+ de_lujo);
+                                    tv_tarifa_con_aire.setText("Bs. "+ con_aire);
+                                    tv_tarifa_maletero.setText("Bs. "+ maletero);
+                                    tv_tarifa_con_pedido.setText("Bs. "+ pedido);
+                                    tv_tarifa_con_reserva.setText("Bs. "+ reserva);
+                                    tv_tarifa_moto.setText("Bs. "+moto);
+                                    tv_tarifa_moto_pedido.setText("Bs. "+ moto_pedido);
+
+                                    monto_normal=Double.parseDouble(normal);
+
+                                } else  {
+                                    if(cantidad_solicitud_tarifa<3)
+                                    {
+                                        solicitar_tarifa();
+                                    }else{
+                                        mensaje_error(suceso.getMensaje());
+                                    }
+                                    cantidad_solicitud_tarifa++;
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje_error("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+
+            queue.add(myRequest);
+        } catch (Exception e) {
+
+        }
+    }
+
+    public void servicio_billetera(String id_usuario)
+    {
+
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario", id_usuario);
+
+
+            String url=getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+                            String s_monto="";
+
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    s_monto=respuestaJSON.getString("monto");
+
+                                    //final
+                                    monto_billetera=Double.parseDouble(s_monto);
+
+                                } else  {
+
+                                }
+                                tv_billetera.setText(monto_billetera+" BOB");
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+
+            queue.add(myRequest);
+        } catch (Exception e) {
+
+        }
+    }
+    public void servicio_taxi_ruta()
+    {
+        //Servicio servicio = new Servicio();
+        //servicio.execute(getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa", "1", String.valueOf(latitud_inicio), String.valueOf(longitud_inicio),String.valueOf(latitud_fin),String.valueOf(longitud_fin));// parametro que recibe el doinbackground
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+
+            String url="https://maps.googleapis.com/maps/api/directions/json?origin=" + latitud_inicio + "," + longitud_inicio + "&destination=" + latitud_fin + "," + longitud_fin + "&mode=driving&key=AIzaSyB1h4N5nfpkF1Hg30P88c_1MvH9qG9Tcvs";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
+                            String metros,minuto,normal,de_lujo,con_aire,maletero,pedido,reserva,moto,moto_pedido;
+                            try {
+                                rutas= new JSONObject(respuestaJSON.toString());//Creo un JSONObject a partir del
+                                //final
+                                dibujar_ruta(rutas);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                if(cantidad_solicitud_ruta<3){
+                                marcar_ruta();
+                                }else{
+                                    mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
+                                }
+                                cantidad_solicitud_ruta++;
+                                }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje_error("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+            queue.add(myRequest);
+        } catch (Exception e) {
+            pDialog.cancel();
+        }
+    }
+
+
+
     @Override
     public void onClick(View v) {
         switch (v.getId())
         {
+            //seleccion
+            case R.id.pedir_movil_normal_seleccion:
+                seleccionar_movil(1);
+                break;
+            case R.id.pedir_movil_lujo_seleccion:
+                seleccionar_movil(2);
+                break;
+            case R.id.pedir_movil_aire_seleccion:
+                seleccionar_movil(3);
+                break;
+            case R.id.pedir_movil_maletero_seleccion:
+                seleccionar_movil(4);
+                break;
+            case R.id.pedir_moto_seleccion:
+                seleccionar_movil(7);
+                break;
+            case  R.id.ll_solicitar_ahora:
+
+                solicitar_ahora();
+
+                break;
+            //fin de seleccion
             case R.id.cb_tipo_pedido_empresa:
                 actualizar_billetera();
                 if(cb_tipo_pedido_empresa.isChecked()==true)
@@ -443,6 +767,60 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                         actualizar_perfil();
                     }
 
+                break;
+        }
+    }
+
+    private void solicitar_ahora() {
+        if(existe_celular()==true)
+        {
+
+            try{
+                lat_1=latitud_inicio;
+                lon_1=longitud_inicio;
+            }catch (Exception e){
+                lat_1=0;
+                lon_1=0;
+            }
+            if(lat_1!=0&& lon_1!=0){
+                escribir_referencia(clase_vehiculo,0,"Solicitando un movil");
+            }else{
+                AlertDialog.Builder dialogo1 = new AlertDialog.Builder(this);
+                dialogo1.setTitle("Atención");
+                dialogo1.setMessage("Por favor geolocalice su ubicación.");
+                dialogo1.setCancelable(false);
+                dialogo1.setPositiveButton("OK", null);
+                dialogo1.show();
+            }
+
+        } else{
+            actualizar_perfil();
+        }
+    }
+
+    private void seleccionar_movil(int i) {
+        clase_vehiculo=i;
+
+        im_movil_normal.setImageResource(R.mipmap.ic_movil_normal_gris);
+        im_movil_aire.setImageResource(R.mipmap.ic_movil_aire_gris);
+        im_movil_lujo.setImageResource(R.mipmap.ic_movil_lujo_gris);
+        im_movil_maletero.setImageResource(R.mipmap.ic_movil_maletero_gris);
+        im_moto.setImageResource(R.mipmap.ic_moto_gris);
+        switch (i){
+            case 1:
+                im_movil_normal.setImageResource(R.mipmap.ic_movil_normal);
+            break;
+            case 2:
+                im_movil_lujo.setImageResource(R.mipmap.ic_movil_lujo);
+                break;
+            case 3:
+                im_movil_aire.setImageResource(R.mipmap.ic_movil_aire);
+                break;
+            case 4:
+                im_movil_maletero.setImageResource(R.mipmap.ic_movil_maletero);
+                break;
+            case 7:
+                im_moto.setImageResource(R.mipmap.ic_moto);
                 break;
         }
     }
@@ -582,175 +960,6 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     }
 
 
-    public class Servicio extends AsyncTask<String,Integer,String> {
-        String metros,minuto,normal,de_lujo,con_aire,maletero,parrilla,pedido,reserva,moto,moto_pedido,viru,expreso,hora;
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//Iniciar sesion
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    DataOutputStream printout;
-                    DataOutputStream input;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("latitud_inicio", params[2]);
-                    jsonParam.put("longitud_inicio", params[3]);
-                    jsonParam.put("latitud_fin", params[4]);
-                    jsonParam.put("longitud_fin", params[5]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-                        String mensaje = respuestaJSON.getString("mensaje");// suceso es el campo en el Json
-                        suceso=new Suceso(error,mensaje);
-
-                        if (error.equals("1")) {
-
-                            metros=respuestaJSON.getString("metros");
-                            minuto=respuestaJSON.getString("minutos");
-                            normal=respuestaJSON.getString("normal");
-                            de_lujo=respuestaJSON.getString("de_lujo");
-                            con_aire=respuestaJSON.getString("con_aire");
-                            maletero=respuestaJSON.getString("maletero");
-                            pedido=respuestaJSON.getString("pedido");
-                            reserva=respuestaJSON.getString("reserva");
-                            moto=respuestaJSON.getString("moto");
-                            moto_pedido=respuestaJSON.getString("moto_pedido");
-
-
-
-
-                            devuelve="1";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Calcular_tarifa_confirmar.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Calculando la tarifa");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pDialog.cancel();//ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                int minuto1= Integer.parseInt(minuto);
-                int distancia= Integer.parseInt(metros);
-                int km=distancia/1000;
-                int m=distancia%1000;
-                if(distancia<1000)
-                {
-                    tv_monto_distancia.setText("Mt. "+ metros);
-                }else{
-                    tv_monto_distancia.setText("Km. "+ km+"."+m);
-                }
-
-
-                tv_monto_tiempo.setText("Hrs. "+ formatearMinutosAHoraMinuto(minuto1));
-                
-                tv_monto_tiempo.setText("Hrs. "+ formatearMinutosAHoraMinuto(minuto1));
-                tv_tarifa_normal.setText(  normal+" BOB");
-                tv_tarifa_de_lujo.setText("Bs. "+ de_lujo);
-                tv_tarifa_con_aire.setText("Bs. "+ con_aire);
-                tv_tarifa_maletero.setText("Bs. "+ maletero);
-                tv_tarifa_con_pedido.setText("Bs. "+ pedido);
-                tv_tarifa_con_reserva.setText("Bs. "+ reserva);
-                tv_tarifa_moto.setText("Bs. "+moto);
-                tv_tarifa_moto_pedido.setText("Bs. "+ moto_pedido);
-
-                monto_normal=Double.parseDouble(normal);
-
-            } else if(s.equals("2")) {
-                if(cantidad_solicitud_tarifa<3)
-                {
-                    solicitar_tarifa();
-                }else{
-                    mensaje_error(suceso.getMensaje());
-                }
-                cantidad_solicitud_tarifa++;
-
-            }
-            else
-            {
-                mensaje_error("Falla en tu conexión a Internet.");
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-    }
-
 
     public String formatearMinutosAHoraMinuto(int minutos) {
         String formato = "%02d:%02d";
@@ -759,232 +968,15 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         return String.format(formato, horasReales, minutosReales);
     }
 
-    // comenzar el servicio con el motista....
-    public class Servicio_taxi_ruta extends AsyncTask<String,Integer,String> {
 
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-            //Obtener el camino mas corto. para llegar mas rapido ..
-            if (params[1] == "4") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-
-
-                        rutas= new JSONObject(result.toString());//Creo un JSONObject a partir del
-
-                        devuelve="7";
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            // Log.e("respuesta del servidor=", "" + s);
-            if(s.equals("7"))
-            {
-                dibujar_ruta(rutas);
-            }
-            else
-            {
-
-                if(cantidad_solicitud_ruta<3){
-                    marcar_ruta();
-                }else{
-                    mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
-                }
-                cantidad_solicitud_ruta++;
-
-            }
-
-
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
 
     private void actualizar_billetera() {
         SharedPreferences sperfil=getSharedPreferences("perfil",MODE_PRIVATE);
-        Servicio_billetera hilo = new Servicio_billetera();
-        hilo.execute(getString(R.string.servidor) + "frmUsuario.php?opcion=get_monto_billetera", "1",sperfil.getString("id_usuario",""));// parametro que recibe el doinbackground
+        //Servicio_billetera hilo = new Servicio_billetera();
+        //hilo.execute(getString(R.string.servidor) + "frmUsuario.php?opcion=get_monto_billetera", "1",sperfil.getString("id_usuario",""));// parametro que recibe el doinbackground
+        servicio_billetera(sperfil.getString("id_usuario",""));
 
     }
-
-//servicio para verificar la billetera
-    public class Servicio_billetera extends AsyncTask<String,Integer,String> {
-        String s_monto="";
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-
-
-
-
-            if (params[1] == "1") {
-                //actualizar billetera
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_usuario", params[2]);
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="1";
-                            s_monto=respuestaJSON.getString("monto");
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-
-            // Log.e("onPostExcute=", "" + s);
-            if( s.equals("1"))
-            {
-               monto_billetera=Double.parseDouble(s_monto);
-
-
-            }
-            else if(s.equals("2"))
-            {
-            }
-            tv_billetera.setText(monto_billetera+" BOB");
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
-
 
 
     public void mensaje_error(String mensaje)
@@ -1129,8 +1121,8 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         {
             try {
                 int id_pedido= Integer.parseInt(ult.getString("id_pedido",""));
-                Servicio hilo_taxi = new  Servicio();
-                hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido", "5", String.valueOf(id_pedido));// parametro que recibe el doinbackground
+             //   Servicio hilo_taxi = new  Servicio();
+              //  hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido", "5", String.valueOf(id_pedido));// parametro que recibe el doinbackground
             }catch (Exception e)
             {
                 sw_ver_taxi_cerca=false;

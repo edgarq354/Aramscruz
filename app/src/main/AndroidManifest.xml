@@ -40,7 +40,6 @@
             android:value="@string/facebook_app_id" />
 
         <uses-library android:name="com.google.android.maps" />
-
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
@@ -458,10 +457,7 @@
         <activity
             android:name=".preregistro.Menu_datos_vehiculo"
             android:label="@string/title_activity_menu_datos_vehiculo"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
-
-
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".chat.Chat"
             android:label="@string/title_activity_chat"
@@ -474,15 +470,15 @@
         <service
             android:name=".chat.Servicio_guardar_mensaje_enviado"
             android:exported="false" />
+
         <activity
             android:name=".viajes.Viajes"
             android:label="@string/title_activity_viajes"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".informacion.Ayuda"
             android:label="@string/title_activity_ayuda"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

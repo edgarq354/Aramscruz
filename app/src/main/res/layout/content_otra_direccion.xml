@@ -47,35 +47,6 @@
         android:layout_gravity="center|bottom"
         >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_weight="1"
-            android:padding="5sp"
-            android:layout_marginBottom="5sp"
-            android:background="@drawable/presentacion"
-            >
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_weight="1"
-                android:id="@+id/tv_nombre"
-                android:textColor="@color/colorPrimaryDark"
-                style="@style/TextAppearance.AppCompat.Button"
-                />
-
-
-            <CheckBox
-                android:id="@+id/cb_tipo_pedido_empresa"
-                android:layout_width="0sp"
-                android:layout_height="0sp"
-                android:text="SOLICITUD CORPORATIVA"
-                />
-
-        </LinearLayout>
 
 
         <LinearLayout
@@ -90,11 +61,7 @@
             style="@style/submit7"
             android:id="@+id/pedir_movil"
             >
-            <ImageView
-                android:layout_width="40sp"
-                android:layout_height="40sp"
-                android:layout_margin="5sp"
-                android:src="@mipmap/ic_movil_normal"/>
+
             <TextView
                 android:id="@+id/textView3"
                 android:layout_width="match_parent"
@@ -104,6 +71,7 @@
                 android:text="L  I  S   T  O  "
                 android:textStyle="bold"
                 android:textSize="25sp"
+                android:padding="1sp"
                 android:textColor="@color/colorTextoBoton"
                 />
 

@@ -71,7 +71,6 @@ El permiso de ubicación es necesario para mostrar su ubicación actual, ¿le gu
     <string name="title_activity_agregar_direccion_mapa">Agregar dirección</string>
 
 
-
     <string name="whatsapp">+59176322224</string>
     <string name="version_sql">8</string>
     <string name="nombre_sql">radiomovilclasico</string>
@@ -159,5 +158,6 @@ El permiso de ubicación es necesario para mostrar su ubicación actual, ¿le gu
     </string-array>
 
     <string name="title_activity_ayuda">Ayuda</string>
+    <string name="title_activity_otra_direccion_multiples">Otra_direccion_multiples</string>
 
 </resources>

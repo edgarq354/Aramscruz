@@ -129,7 +129,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
     Suceso suceso;
 
     LinearLayout pedi_taxi,pedir_movil_lujo,pedir_movil_maletero,pedir_movil_aire,pedir_movil_pedido, pedir_movil_reserva, buscar_direccion,pedir_moto;
-    CheckBox cb_tipo_pedido_empresa;
+
 
     private AddressResultReceiver mResultReceiver;
     int fetchType = Constants.USE_ADDRESS_LOCATION;
@@ -139,7 +139,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
 
     int limpiar_mapa=0;
 
-    public TextView tv_ubicacion,tv_nombre;
+    public TextView tv_ubicacion;
     private GoogleMap mMap;
     public LocationManager locationManager;
     public LocationListener locationListener;
@@ -191,7 +191,6 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_otra_direccion);
-        cb_tipo_pedido_empresa= (CheckBox)findViewById(R.id.cb_tipo_pedido_empresa);
         //et_buscar=(EditText)findViewById(R.id.et_buscar);
         pedi_taxi = (LinearLayout) findViewById(R.id.pedir_movil);
         pedir_movil_aire = (LinearLayout) findViewById(R.id.pedir_movil_aire);
@@ -201,7 +200,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         pedir_movil_reserva = (LinearLayout) findViewById(R.id.pedir_movil_reserva);
         pedir_moto = (LinearLayout)findViewById(R.id.pedir_moto);
         tv_ubicacion=(TextView)findViewById(R.id.tv_ubicacion);
-        tv_nombre=(TextView)findViewById(R.id.tv_nombre);
+
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -270,7 +269,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
             longitud_buscador= Double.parseDouble(bundle.getString("longitud","0"));
             tv_ubicacion.setText(bundle.getString("direccion",""));
             nombre=bundle.getString("nombre","");
-            tv_nombre.setText(nombre);
+
             sw_acercar_a_mi_ubicacion=2;
             if(latitud_buscador==0 && longitud_buscador==0)
             {
@@ -736,9 +735,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
     @Override
     public void onClick(View v) {
         int tipo_pedido_empresa=0;
-        if(cb_tipo_pedido_empresa.isChecked()){
-            tipo_pedido_empresa=1;
-        }
+
 
         switch (v.getId()) {
             case R.id.pedir_movil:

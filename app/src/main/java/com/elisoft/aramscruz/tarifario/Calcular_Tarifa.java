@@ -13,8 +13,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
+import com.elisoft.aramscruz.notificaciones.SharedPrefManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -43,7 +51,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class Calcular_Tarifa extends AppCompatActivity implements OnMapReadyCallback {
@@ -90,8 +100,7 @@ public class Calcular_Tarifa extends AppCompatActivity implements OnMapReadyCall
             longitud_fin=bundle.getDouble("longitud_fin");
             marcar_ruta();
 
-            Servicio servicio = new Servicio();
-            servicio.execute(getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa", "1", String.valueOf(latitud_inicio), String.valueOf(longitud_inicio),String.valueOf(latitud_fin),String.valueOf(longitud_fin));// parametro que recibe el doinbackground
+             servicio_calcular_tarifa( String.valueOf(latitud_inicio), String.valueOf(longitud_inicio),String.valueOf(latitud_fin),String.valueOf(longitud_fin));
 
         }catch (Exception e){
 
@@ -222,172 +231,178 @@ public class Calcular_Tarifa extends AppCompatActivity implements OnMapReadyCall
     public void marcar_ruta( )
     {
         try{
-            Servicio_taxi_ruta hilo = new Servicio_taxi_ruta();
-            hilo.execute("https://maps.googleapis.com/maps/api/directions/json?origin=" + latitud_inicio + "," + longitud_inicio + "&destination=" + latitud_fin + "," + longitud_fin + "&mode=driving&key=AIzaSyB1h4N5nfpkF1Hg30P88c_1MvH9qG9Tcvs", "4");// parametro que recibe el doinbackground
-
+            servicio_taxi_ruta();
         }catch (Exception e)
         {
 
         }
     }
 
+    //servicio calcular tarifa
+    private void servicio_calcular_tarifa(String latitud_inicio,String longitud_inicio,String latitud_fin,String longitud_fin) {
+        pDialog = new ProgressDialog(Calcular_Tarifa.this);
+        pDialog.setTitle(getString(R.string.app_name));
+        pDialog.setMessage("Calculando la tarifa");
+        pDialog.setIndeterminate(false);
+        pDialog.setCancelable(false);
+        pDialog.show();
+        try {
 
-    public class Servicio extends AsyncTask<String,Integer,String> {
-         String metros,minuto,normal,de_lujo,con_aire,maletero,pedido,reserva,moto,moto_pedido;
-        @Override
-        protected String doInBackground(String... params) {
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//Iniciar sesion
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("latitud_inicio",latitud_inicio);
+            jsonParam.put("longitud_inicio",longitud_inicio);
+            jsonParam.put("latitud_fin",latitud_fin);
+            jsonParam.put("longitud_fin",longitud_fin);
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                    DataOutputStream printout;
-                    DataOutputStream input;
 
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            String metros,minuto,normal,de_lujo,con_aire,maletero,pedido,reserva,moto,moto_pedido;
+                            pDialog.cancel();
 
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("latitud_inicio", params[2]);
-                    jsonParam.put("longitud_inicio", params[3]);
-                    jsonParam.put("latitud_fin", params[4]);
-                    jsonParam.put("longitud_fin", params[5]);
+                            try {
 
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-                    int respuesta = urlConn.getResponseCode();
+                                if (suceso.getSuceso().equals("1")) {
 
-                    StringBuilder result = new StringBuilder();
+                                    metros=respuestaJSON.getString("metros");
+                                    minuto=respuestaJSON.getString("minutos");
+                                    normal=respuestaJSON.getString("normal");
+                                    de_lujo=respuestaJSON.getString("de_lujo");
+                                    con_aire=respuestaJSON.getString("con_aire");
+                                    maletero=respuestaJSON.getString("maletero");
+                                    pedido=respuestaJSON.getString("pedido");
+                                    reserva=respuestaJSON.getString("reserva");
+                                    moto=respuestaJSON.getString("moto");
+                                    moto_pedido=respuestaJSON.getString("moto_pedido");
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
+                                    ///----final
+                                    int minuto1=Integer.parseInt(minuto);
+                                    int distancia= Integer.parseInt(metros);
+                                    int km=distancia/1000;
+                                    int m=distancia%1000;
+                                    if(distancia<1000)
+                                    {
+                                        tv_monto_distancia.setText("Mt. "+ metros);
+                                    }else{
+                                        tv_monto_distancia.setText("Km. "+ km+"."+m);
+                                    }
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+
+                                    tv_monto_tiempo.setText("Hrs. "+ formatearMinutosAHoraMinuto(minuto1));
+                                    tv_tarifa_normal.setText("Bs. "+ normal);
+                                    tv_tarifa_de_lujo.setText("Bs. "+ de_lujo);
+                                    tv_tarifa_con_aire.setText("Bs. "+ con_aire);
+                                    tv_tarifa_maletero.setText("Bs. "+ maletero);
+                                    tv_tarifa_con_pedido.setText("Bs. "+ pedido);
+                                    tv_tarifa_con_reserva.setText("Bs. "+ reserva);
+                                    tv_tarifa_moto.setText("Bs. "+moto);
+                                    tv_tarifa_moto_pedido.setText("Bs. "+ moto_pedido);
+
+                                }else {
+                                    mensaje_error(suceso.getMensaje());
+                                }
+
+                            } catch (JSONException e) {
+                                pDialog.cancel();
+                                e.printStackTrace();
+                            }
+
                         }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-                        String mensaje = respuestaJSON.getString("mensaje");// suceso es el campo en el Json
-                        suceso=new Suceso(error,mensaje);
-
-                        if (error.equals("1")) {
-
-                            metros=respuestaJSON.getString("metros");
-                            minuto=respuestaJSON.getString("minutos");
-                            normal=respuestaJSON.getString("normal");
-                            de_lujo=respuestaJSON.getString("de_lujo");
-                            con_aire=respuestaJSON.getString("con_aire");
-                            maletero=respuestaJSON.getString("maletero");
-                            pedido=respuestaJSON.getString("pedido");
-                            reserva=respuestaJSON.getString("reserva");
-                            moto=respuestaJSON.getString("moto");
-                            moto_pedido=respuestaJSON.getString("moto_pedido");
-
-
-
-                            devuelve="1";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Calcular_Tarifa.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Calculando la tarifa");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pDialog.cancel();//ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                int minuto1=Integer.parseInt(minuto);
-                int distancia= Integer.parseInt(metros);
-                int km=distancia/1000;
-                int m=distancia%1000;
-                if(distancia<1000)
-                {
-                    tv_monto_distancia.setText("Mt. "+ metros);
-                }else{
-                    tv_monto_distancia.setText("Km. "+ km+"."+m);
+                    return  parametros;
                 }
+            };
+            queue.add(myRequest);
 
-
-                tv_monto_tiempo.setText("Hrs. "+ formatearMinutosAHoraMinuto(minuto1));
-                tv_tarifa_normal.setText("Bs. "+ normal);
-                tv_tarifa_de_lujo.setText("Bs. "+ de_lujo);
-                tv_tarifa_con_aire.setText("Bs. "+ con_aire);
-                tv_tarifa_maletero.setText("Bs. "+ maletero);
-                tv_tarifa_con_pedido.setText("Bs. "+ pedido);
-                tv_tarifa_con_reserva.setText("Bs. "+ reserva);
-                tv_tarifa_moto.setText("Bs. "+moto);
-                tv_tarifa_moto_pedido.setText("Bs. "+ moto_pedido);
-
-            } else if(s.equals("2")) {
-                mensaje_error(suceso.getMensaje());
-            }
-            else
-            {
-                mensaje_error("Falla en tu conexión a Internet.");
-            }
+        } catch (Exception e) {
+            pDialog.cancel();
         }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
     }
+
+    //servicio taxi ruta
+    private void servicio_taxi_ruta() {
+
+        try {
+
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("token", token);
+            String url="https://maps.googleapis.com/maps/api/directions/json?origin=" + latitud_inicio + "," + longitud_inicio + "&destination=" + latitud_fin + "," + longitud_fin + "&mode=driving&key=AIzaSyB1h4N5nfpkF1Hg30P88c_1MvH9qG9Tcvs";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+
+                            try {
+                                rutas= new JSONObject(respuestaJSON.toString());
+                            //final
+                                dibujar_ruta(rutas);
+
+                            } catch (JSONException e) {
+                                mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+            queue.add(myRequest);
+
+        } catch (Exception e) {
+            mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
+        }
+
+    }
+
+
+
 
 
     public String formatearMinutosAHoraMinuto(int minutos) {
@@ -397,108 +412,6 @@ public class Calcular_Tarifa extends AppCompatActivity implements OnMapReadyCall
         return String.format(formato, horasReales, minutosReales);
     }
 
-    // comenzar el servicio con el motista....
-    public class Servicio_taxi_ruta extends AsyncTask<String,Integer,String> {
-
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-            //Obtener el camino mas corto. para llegar mas rapido ..
-            if (params[1] == "4") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-
-
-                        rutas= new JSONObject(result.toString());//Creo un JSONObject a partir del
-
-                        devuelve="7";
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            // Log.e("respuesta del servidor=", "" + s);
-            if(s.equals("7"))
-            {
-                dibujar_ruta(rutas);
-            }
-            else
-            {
-
-                mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
-            }
-
-
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
 
     public void mensaje_error(String mensaje)
     {

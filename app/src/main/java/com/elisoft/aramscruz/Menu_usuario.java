@@ -59,6 +59,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.SqLite.AdminSQLiteOpenHelper;
 import com.elisoft.aramscruz.corporativo.Empresa;
 import com.elisoft.aramscruz.historial_notificacion.Notificacion;
@@ -112,7 +119,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static android.support.v7.app.AlertDialog.Builder;
 
@@ -195,7 +204,6 @@ public class Menu_usuario extends AppCompatActivity
 
     CheckBox cb_tipo_pedido_empresa;
 
-    Servicio_ver_movil hilo_m;
 
 
 
@@ -271,7 +279,7 @@ public class Menu_usuario extends AppCompatActivity
         ver_taxi = (FloatingActionButton) findViewById(R.id.ver_movil);
         fb_llamar = (FloatingActionButton) findViewById(R.id.fb_llamar);
         fb_whatsapp = (FloatingActionButton) findViewById(R.id.fb_whatsapp);
-        hilo_m=new Servicio_ver_movil();
+
 
         sw_iteraccion = 0;
 
@@ -464,13 +472,90 @@ public class Menu_usuario extends AppCompatActivity
         SharedPreferences prefe = getSharedPreferences("perfil", Context.MODE_PRIVATE);
         try {
             int id_usuario = Integer.parseInt(prefe.getString("id_usuario", ""));
-            Servicio_actualizar hilo = new Servicio_actualizar();
-            hilo.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_usuario", "6", String.valueOf(id_usuario));// parametro que recibe el doinbackground
 
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario", String.valueOf(id_usuario));
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_usuario";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+                            try {
+
+
+
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    JSONArray dato=respuestaJSON.getJSONArray("pedido");
+                                    String sid_pedido=dato.getJSONObject(0).getString("id");
+                                    String slatitud=dato.getJSONObject(0).getString("latitud");
+                                    String slongitud=dato.getJSONObject(0).getString("longitud");
+                                    SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
+                                    SharedPreferences.Editor editar=pedido.edit();
+                                    editar.putString("id_pedido",sid_pedido);
+                                    editar.putString("latitud",slatitud);
+                                    editar.putString("longitud",slongitud);
+                                    editar.commit();
+                                    //final
+                                    Intent intent = new Intent(Menu_usuario.this, Servicio_pedido.class);
+                                    intent.setAction(Constants.ACTION_RUN_ISERVICE);
+                                    startService(intent);
+
+                                    SharedPreferences spedido = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
+
+                                    Intent pedido2 = new Intent(Menu_usuario.this, Pedido_usuario.class);
+                                    pedido2.putExtra("latitud", Double.parseDouble(spedido.getString("latitud", "0")));
+                                    pedido2.putExtra("longitud", Double.parseDouble(spedido.getString("longitud", "0")));
+                                    pedido2.putExtra("id_pedido", spedido.getString("id_pedido", "0"));
+                                    startActivity(pedido2);
+
+                                } else  {
+                                    SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
+                                    SharedPreferences.Editor editar=pedido.edit();
+                                    editar.putString("id_pedido","");
+                                    editar.commit();
+                                    //final
+                                    iniciar_verificacion_version();
+                                    //verificar version de la aplicacion.
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                    mensaje_error("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+            queue.add(myRequest);
         } catch (Exception e) {
 
         }
         sw_ver_taxi_cerca=false;
+
 
     }
 
@@ -606,7 +691,7 @@ public class Menu_usuario extends AppCompatActivity
 
         }
     }
-
+/*
 
     //servicio para ver los moviles
     public class Servicio_ver_movil extends AsyncTask<String,Integer,String> {
@@ -728,403 +813,170 @@ public class Menu_usuario extends AppCompatActivity
         }
 
     }
+*/
+
+    //servicio de cancelar de pedido
+    private void servicio_ver_movil(String latitud,String longitud) {
+
+        try {
+
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("latitud",latitud);
+            jsonParam.put("longitud",longitud);
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+                            try {
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+
+                                    puntos_taxi=respuestaJSON.getJSONArray("taxi");
+                                    ///----final
+                                    sw_ver_taxi_cerca=false;
+                                    agregar_en_mapa_ubicaciones_de_taxi();
+
+                                }else {
+                                    sw_ver_taxi_cerca=false;
+                                    ver_moviles();
+                                }
+
+                            } catch (JSONException e) {
+
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+            queue.add(myRequest);
+
+        } catch (Exception e) {
+
+        }
+
+    }
+
 
     @Override
     protected void onDestroy() {
-        hilo_m.cancel(true);
+
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
-        hilo_m.cancel(true);
+
         super.onPause();
     }
 
-    // comenzar el servicio para la conexion con la base de datos.....
-    public class Servicio extends AsyncTask<String,Integer,String> {
+
+    public void servicio_iniciar_verificacion_version(){
+        final SharedPreferences prefe = getSharedPreferences("perfil", MODE_PRIVATE);
+        try {
+            String devuelve="";
+            int id_usuario = Integer.parseInt(prefe.getString("id_usuario", ""));
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario", String.valueOf(id_usuario));
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frm_version.php?opcion=aramscruz_pasajero";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
 
-        @Override
-        protected String doInBackground(String... params) {
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-// busca taxi dentro de su rango
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
+                            try {
+                                version= Integer.valueOf(respuestaJSON.getString("version"));
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
+                                if (suceso.getSuceso().equals("1")) {
 
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("latitud", params[2]);
-                    jsonParam.put("longitud", params[3]);
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
 
-                    int respuesta = urlConn.getResponseCode();
 
-                    StringBuilder result = new StringBuilder();
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
+                                    boolean sw=verificar_version();
+                                    if(sw==false){
+                                        boolean sw_p=existe_perfil();
+                                        if(sw_p==false){
+                                            abrir_perfil_con_mensaje();
+                                        }
+                                    }
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+                                    cuenta_iniciar_en_otro_celular(suceso.getMensaje());
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+                                }
+                                else
+                                {
+                                    mensaje_error_final("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error_final("Falla en tu conexión a Internet.");
+                            }
+
                         }
-
-                        SystemClock.sleep(950);
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        if (suceso.getSuceso().equals("1")) {
-                            puntos_taxi=respuestaJSON.getJSONArray("taxi");
-                            devuelve="1";
-                        } else  {
-                            devuelve = "20";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    devuelve="500";
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mensaje_error_final("Falla en tu conexión a Internet.");
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
-            // verificar si tiene un pedido que aun no ha finalizado....
-            //obtener datos del pedido en curso.....
-            if (params[1] == "5") { //mandar JSON metodo post para login
-                try {
-                    HttpURLConnection urlConn;
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_pedido", params[2]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        SystemClock.sleep(950);
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            JSONArray dato=respuestaJSON.getJSONArray("pedido");
-                            String snombre=dato.getJSONObject(0).getString("nombre_taxi");
-                            String scelular=dato.getJSONObject(0).getString("celular");
-                            String sid_taxi=dato.getJSONObject(0).getString("id_taxi");
-                            String smarca=dato.getJSONObject(0).getString("marca");
-                            String splaca=dato.getJSONObject(0).getString("placa");
-                            String scolor=dato.getJSONObject(0).getString("color");
-                            String sid_pedido=dato.getJSONObject(0).getString("id_pedido");
-                            SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-                            SharedPreferences.Editor editar=pedido.edit();
-                            editar.putString("nombre_taxi",snombre);
-                            editar.putString("celular",scelular);
-                            editar.putString("id_taxi",sid_taxi);
-                            editar.putString("marca",smarca);
-                            editar.putString("placa",splaca);
-                            editar.putString("color",scolor);
-                            editar.putString("latitud",dato.getJSONObject(0).getString("latitud"));
-                            editar.putString("longitud",dato.getJSONObject(0).getString("longitud"));
-                            editar.putString("id_pedido",sid_pedido);
-                            editar.commit();
-
-                            devuelve="8";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    devuelve="500";
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    return  parametros;
                 }
-            }
-
-            //obtener pedido por id usuario..
-            if (params[1] == "6") { //mandar JSON metodo post para login
-                try {
-                    HttpURLConnection urlConn;
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_usuario", params[2]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-                        SystemClock.sleep(950);
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            JSONArray dato=respuestaJSON.getJSONArray("pedido");
-                            String sid_pedido=dato.getJSONObject(0).getString("id");
-                            String slatitud=dato.getJSONObject(0).getString("latitud");
-                            String slongitud=dato.getJSONObject(0).getString("longitud");
-                            SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-                            SharedPreferences.Editor editar=pedido.edit();
-                            editar.putString("id_pedido",sid_pedido);
-                            editar.putString("latitud",slatitud);
-                            editar.putString("longitud",slongitud);
-                            editar.commit();
-
-                            devuelve="9";
-                        } else  {
-                            SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-                            SharedPreferences.Editor editar=pedido.edit();
-                            editar.putString("id_pedido","");
-                            editar.commit();
-
-                            devuelve = "10";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    if(cantidad_conexion<3){
-                        devuelve="506";
-                        cantidad_conexion++;
-                    }else {
-                        devuelve = "500";
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            //enviar pedir taxi..
-            if (params[1] == "7") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_usuario", params[2]);
-                    jsonParam.put("latitud", params[3]);
-                    jsonParam.put("longitud", params[4]);
-                    jsonParam.put("nombre",params[5]);
-                    jsonParam.put("indicacion",params[6]);
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        SystemClock.sleep(950);
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="3";
-                        } else {
-                            devuelve = "5";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    devuelve="500";
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+            };
 
 
+            queue.add(myRequest);
 
 
-            return devuelve;
-        }
+        } catch (Exception e) {
 
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                //mMap.clear();
-
-                agregar_en_mapa_ubicaciones_de_taxi();
-                sw_ver_taxi_cerca=false;
-            }
-            else
-            if(s.equals("3")||s.equals("5")||s.equals("4") )
-            {
-                Toast.makeText(Menu_usuario.this,suceso.getMensaje(), Toast.LENGTH_SHORT).show();
-            }
-            else  if(s.equals("2"))
-            {
-                //Toast.makeText(Menu_usuario.this,suceso.getMensaje(),Toast.LENGTH_SHORT).show();
-            }
-            else if(s.equals("8"))
-            {
-                Intent intent = new Intent(Menu_usuario.this, Servicio_pedido.class);
-                intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                startService(intent);
-
-                SharedPreferences spedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-
-                Intent pedido=new Intent(Menu_usuario.this,Pedido_usuario.class);
-                pedido.putExtra("latitud", Double.parseDouble(spedido.getString("latitud","0")));
-                pedido.putExtra("longitud", Double.parseDouble(spedido.getString("longitud","0")));
-                pedido.putExtra("id_pedido",spedido.getString("id_pedido","0"));
-                startActivity( pedido);
-            }else if(s.equals("9"))
-            {
-                Intent intent = new Intent(Menu_usuario.this, Servicio_pedido.class);
-                intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                startService(intent);
-
-                SharedPreferences spedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-
-                Intent pedido=new Intent(Menu_usuario.this,Pedido_usuario.class);
-                pedido.putExtra("latitud", Double.parseDouble(spedido.getString("latitud","0")));
-                pedido.putExtra("longitud", Double.parseDouble(spedido.getString("longitud","0")));
-                pedido.putExtra("id_pedido",spedido.getString("id_pedido","0"));
-                startActivity( pedido);
-            } else if (s.equals("10")) {
-                iniciar_verificacion_version();
-                //verificar version de la aplicacion.
-            }   else if (s.equals("500"))
-            {
-
-            }else if(s.equals("506")){
-                if(estaConectado()){
-                    actualizar();
-                }else{
-                    finish();
-                }
-            }
-            else
-            {
-
-                mensaje_error("Falla en tu conexión a Internet.");
-                sw_ver_taxi_cerca=false;
-            }
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
         }
 
     }
-
+/*
     // comenzar el servicio para la conexion con la base de datos.....
     public class Servicio_actualizar extends AsyncTask<String,Integer,String> {
 
@@ -1289,129 +1141,8 @@ public class Menu_usuario extends AppCompatActivity
         }
 
     }
-    public class Servicio_corporativo extends AsyncTask<String,Integer,String> {
-        String id_empresa,nit,razon_social,monto_deuda,direccion;
 
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-            //enviar pedir taxi..
-
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_usuario", params[2]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        SystemClock.sleep(950);
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                        if (suceso.getSuceso().equals("1")) {
-                            id_empresa = respuestaJSON.getString("id_empresa");
-                            nit = respuestaJSON.getString("nit");
-                            razon_social = respuestaJSON.getString("razon_social");
-                            direccion = respuestaJSON.getString("direccion");
-                            monto_deuda = respuestaJSON.getString("monto_deuda");
-
-                            devuelve = "1";
-                        } else {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Menu_usuario.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Verificando datos corporativos.");
-            pDialog.setIndeterminate(true);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-            pDialog.cancel();//ocultamos proggress dialog
-
-
-            if (s.equals("1")) {
-                Intent menu_corporativo=new Intent(getApplicationContext(), Empresa.class);
-                menu_corporativo.putExtra("id_empresa",id_empresa);
-                menu_corporativo.putExtra("razon_social",razon_social);
-                menu_corporativo.putExtra("direccion",direccion);
-                menu_corporativo.putExtra("nit",nit);
-                menu_corporativo.putExtra("monto_deuda",monto_deuda);
-                startActivity(menu_corporativo);
-            }
-            else  if(s.equals("2"))
-            {
-                mensaje_error(suceso.getMensaje());
-            }
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
+ */
 
     public void agregar_en_mapa_ubicaciones_de_taxi() {
         try {
@@ -2172,8 +1903,9 @@ public class Menu_usuario extends AppCompatActivity
 
                 if(sw_ver_taxi_cerca==false) {
                     sw_ver_taxi_cerca=true;
-                    hilo_m=new Servicio_ver_movil();
-                    hilo_m.execute(getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango", "1", String.valueOf(addressLatLng.latitude), String.valueOf(addressLatLng.longitude));// parametro que recibe el doinbackground*/
+                   // hilo_m=new Servicio_ver_movil();
+                   // hilo_m.execute(getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango", "1", String.valueOf(addressLatLng.latitude), String.valueOf(addressLatLng.longitude));// parametro que recibe el doinbackground*/
+                    servicio_ver_movil(String.valueOf(addressLatLng.latitude), String.valueOf(addressLatLng.longitude));
                 }
             }catch (Exception e)
             {
@@ -3130,12 +2862,9 @@ SharedPreferences casa=getSharedPreferences(getString(R.string.direccion_casa),M
 
 
     public void iniciar_verificacion_version(){
-        SharedPreferences prefe = getSharedPreferences("perfil", Context.MODE_PRIVATE);
+
         try {
-            int id_usuario = Integer.parseInt(prefe.getString("id_usuario", ""));
-            String token= SharedPrefManager.getInstance(this).getDeviceToken();
-            Servicio_version servicio = new Servicio_version();
-            servicio.execute(getString(R.string.servidor) + "frm_version.php?opcion=aramscruz_pasajero", "1",String.valueOf(id_usuario),token);// parametro que recibe el doinbackground
+               servicio_iniciar_verificacion_version();
         } catch (Exception e) {
 
         }
@@ -3199,117 +2928,45 @@ SharedPreferences casa=getSharedPreferences(getString(R.string.direccion_casa),M
         return 0;
     }
 
-    public class Servicio_version extends AsyncTask<String,Integer,String> {
 
+    public void  abrir_perfil_con_mensaje(){
+        Toast.makeText(this,"Señor usuario porfavor actualice su foto de perfil, para nuestros conductores puedan identificarte.",Toast.LENGTH_SHORT).show();
+        /*
+        try {
+            AlertDialog.Builder dialogo1 = new AlertDialog.Builder(this);
+            dialogo1.setTitle("Actualización");
+            dialogo1.setMessage("Señor usuario porfavor actualice su foto de perfil, para nuestros conductores puedan identificarte.");
+            dialogo1.setCancelable(false);
+            dialogo1.setPositiveButton("Abrir perfil", new OnClickListener() {
+                public void onClick(DialogInterface dialogo1, int id) {
 
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//Registrar usuario.
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_usuario", params[2]);
-                    jsonParam.put("token", params[3]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-
-                        version= Integer.valueOf(respuestaJSON.getString("version"));
-                        devuelve="1";
-
-                        suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        if(suceso.getSuceso().equals("2")){
-                            devuelve="2";
-                        }
-
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    Intent intent = new Intent(Menu_usuario.this,Perfil_pasajero.class);
+                    startActivity(intent);
                 }
-            }
-            return devuelve;
-        }
+            });
 
+            dialogo1.show();
 
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
+        }catch (Exception e){
 
         }
+        */
+    }
 
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+    public boolean existe_perfil()
+    {
+        boolean sw=false;
+        Drawable dw;
+        SharedPreferences perfil=getSharedPreferences("perfil",MODE_PRIVATE);
+        String mPath = Environment.getExternalStorageDirectory() + File.separator + getString(R.string.app_name)+"/Imagen"
+                + File.separator + perfil.getString("id_usuario","")+"_perfil.jpg";
 
-            if (s.equals("1")) {
-                verificar_version();
-            }else if(s.equals("2"))
-            {
-                cuenta_iniciar_en_otro_celular(suceso.getMensaje());
+        File newFile = new File(mPath);
+        Bitmap bitmap =  BitmapFactory.decodeFile(newFile.getAbsolutePath());
 
-            }
-            else
-            {
-                mensaje_error_final("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
-            }
-        }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
+        sw = bitmap != null;
+        return sw;
     }
 
 
