@@ -28,6 +28,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.Menu_usuario;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Registrar_nombre_completo;
@@ -49,6 +56,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Confirmar_sms extends AppCompatActivity implements View.OnClickListener {
@@ -207,9 +216,7 @@ public class Confirmar_sms extends AppCompatActivity implements View.OnClickList
         }
 
         if (token != null && token != "") {
-
-            Servicio hilo_cargar = new Servicio();
-            hilo_cargar.execute(getString(R.string.servidor) + "frmUsuario.php?opcion=iniciar_sesion_con_celular", "1", celular, token,imei,inputCode.getText().toString().trim());// parametro que recibe el doinbackground
+            servicio_iniciar_sesion_con_celular(celular, token,imei,inputCode.getText().toString().trim());
         }
         else
         {
@@ -228,9 +235,7 @@ public class Confirmar_sms extends AppCompatActivity implements View.OnClickList
 
     public void enviar_sms()
     {
-        Servicio_mensaje hilo_moto = new Servicio_mensaje();
-        hilo_moto.execute(getString(R.string.servidor) + "frmUsuario.php?opcion=enviar_sms", "1",celular);// parametro que recibe el doinbackground
-
+           servicio_enviar_mensaje(celular);
     }
 
 
@@ -346,146 +351,6 @@ public class Confirmar_sms extends AppCompatActivity implements View.OnClickList
 
 
     //servicio de verificar si ya esta registrado el cellular.
-    public class Servicio extends AsyncTask<String,Integer,String> {
-
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//Iniciar sesion
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    DataOutputStream printout;
-                    DataOutputStream input;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("celular", params[2]);
-                    jsonParam.put("token", params[3]);
-                    jsonParam.put("imei", params[4]);
-                    jsonParam.put("codigo", params[5]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        if (error.equals("1")) {
-                            JSONArray dato=respuestaJSON.getJSONArray("perfil");
-                            String snombre= dato.getJSONObject(0).getString("nombre");
-                            String sapellido=dato.getJSONObject(0).getString("apellido") ;
-                            String semail= dato.getJSONObject(0).getString("correo") ;
-                            String scelular= dato.getJSONObject(0).getString("celular") ;
-                            String sid= dato.getJSONObject(0).getString("id") ;
-                            String scodigo= dato.getJSONObject(0).getString("codigo") ;
-                            cargar_datos(snombre,sapellido,semail,scelular,sid,scodigo);
-
-                            devuelve="1";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            try{
-                pDialog = new ProgressDialog(Confirmar_sms.this);
-                pDialog.setTitle(getString(R.string.app_name));
-                pDialog.setMessage("Verificando el Codigo");
-                pDialog.setIndeterminate(false);
-                pDialog.setCancelable(true);
-                pDialog.show();
-            }catch (Exception e)
-            {}
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            try {
-                pDialog.dismiss();//ocultamos proggress dialog
-            }catch (Exception e){}
-            // Log.e("onPostExcute=", "" + s);
-
-            if (suceso.getSuceso().equals("1")) {
-                iniciar_sesion();
-            }else if(suceso.getSuceso().equals("3")) {
-                Intent registrar=new Intent(getApplicationContext(),Registrar_nombre_completo.class);
-                registrar.putExtra("celular",celular);
-                startActivity(registrar);
-                finish();
-            }else if(suceso.getSuceso().equals("2")) {
-
-                mensaje_error(suceso.getMensaje());
-            }
-            else
-            {
-                mensaje("Falla en tu conexión a Internet.");
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-    }
 
     public void cargar_datos(String nombre, String apellido, String email, String celular, String id, String codigo)
     {
@@ -521,129 +386,160 @@ public class Confirmar_sms extends AppCompatActivity implements View.OnClickList
         toast.show();
     }
 
+    //servicio de verificar si ya esta registrado el cellular.
+    public void servicio_iniciar_sesion_con_celular(String celular,
+                                                    String token,
+                                                    String imei,
+                                                    String codigo)
+    {
+        pDialog = new ProgressDialog(Confirmar_sms.this);
+        pDialog.setTitle(getString(R.string.app_name));
+        pDialog.setMessage("Verificando el Codigo");
+        pDialog.setIndeterminate(false);
+        pDialog.setCancelable(true);
+        pDialog.show();
 
 
-    public class Servicio_mensaje extends AsyncTask<String,Integer,String> {
-        //para el usuario
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("celular", celular);
+            jsonParam.put("token", token);
+            jsonParam.put("imei", imei);
+            jsonParam.put("codigo", codigo);
 
-        @Override
-        protected String doInBackground(String... params) {
+            String url=getString(R.string.servidor) + "frmUsuario.php?opcion=iniciar_sesion_con_celular";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "-1";
-            if(pDialog.isShowing()) {//borre el ==true
-                devuelve = "";
-                if (params[1] == "1") { //mandar JSON metodo post para login
-                    try {
-                        HttpURLConnection urlConn;
 
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
 
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("celular", params[2]);
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
+                                if (suceso.getSuceso().equals("1")) {
+                                    JSONArray dato=respuestaJSON.getJSONArray("perfil");
+                                    String snombre= dato.getJSONObject(0).getString("nombre");
+                                    String sapellido=dato.getJSONObject(0).getString("apellido") ;
+                                    String semail= dato.getJSONObject(0).getString("correo") ;
+                                    String scelular= dato.getJSONObject(0).getString("celular") ;
+                                    String sid= dato.getJSONObject(0).getString("id") ;
+                                    String scodigo= dato.getJSONObject(0).getString("codigo") ;
+                                    cargar_datos(snombre,sapellido,semail,scelular,sid,scodigo);
 
-                        int respuesta = urlConn.getResponseCode();
+                                    //final
+                                    iniciar_sesion();
 
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            // StringBuilder pasando a cadena.                    }
-
-                            SystemClock.sleep(950);
-
-                            //Accedemos a vector de resultados.
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));// suceso es el campo en el Json
-                            if (suceso.getSuceso().equals("1")) {
-                                devuelve = "1";
-                            } else {
-                                devuelve = "2";
+                                } else  {
+                                    mensaje_error(suceso.getMensaje());
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
                             }
 
                         }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje_error("Falla en tu conexión a Internet.");
                 }
             }
-            return devuelve;
-        }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
 
 
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
 
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Confirmar_sms.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Enviando sms de verificación.");
-            pDialog.setIndeterminate(true);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-            pDialog.cancel();//ocultamos proggress dialog
-
-            if (s.equals("1")) {
-
-                obtener_codigo();
-            }
-            else if(s.equals("2"))
-            {
-                mensaje_error(suceso.getMensaje());
-            }
-            else if(s.equals(""))
-            {
-                mensaje_error("Error: Al conectar con el servidor.");
-            }
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
+            queue.add(myRequest);
+        } catch (Exception e) {
+            pDialog.cancel();
+            mensaje_error("Falla en tu conexión a Internet.");
         }
     }
+
+    public void servicio_enviar_mensaje(String celular)
+    {
+        pDialog = new ProgressDialog(Confirmar_sms.this);
+        pDialog.setTitle(getString(R.string.app_name));
+        pDialog.setMessage("Enviando sms de verificación.");
+        pDialog.setIndeterminate(true);
+        pDialog.setCancelable(false);
+        pDialog.show();
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("celular", celular);
+
+            String url=getString(R.string.servidor) + "frmUsuario.php?opcion=enviar_sms";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
+
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    obtener_codigo();
+
+                                } else  {
+                                    mensaje_error(suceso.getMensaje());
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje_error("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+
+            queue.add(myRequest);
+        } catch (Exception e) {
+            pDialog.cancel();
+            mensaje_error("Falla en tu conexión a Internet.");
+        }
+    }
+
 
     public void mensaje_error(String mensaje)
     {

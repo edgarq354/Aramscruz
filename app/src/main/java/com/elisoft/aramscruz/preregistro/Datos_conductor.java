@@ -14,6 +14,13 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
 
@@ -32,6 +39,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Datos_conductor extends AppCompatActivity  implements View.OnClickListener{
 
@@ -233,8 +242,7 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
             if (materno.length() > 2){
                 if (direccion.length()>5){
                     if (correo.length()>10){
-        Servicio servicio = new Servicio();
-        servicio.execute(getString(R.string.servidor) + "frmTaxi.php?opcion=guardar_conductor_pre_registro", "1");// parametro que recibe el doinbackground
+                        guardar_datos_conductor_volley();
                     }else
                     {
                         mensaje("Ingrese su correo electronico");
@@ -262,189 +270,140 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
     }
 
 
-    public class Servicio extends AsyncTask<String,Integer,String> {
+    private void guardar_datos_conductor_volley() {
+        // Servicio servicio = new Servicio();
 
 
-        @Override
-        protected String doInBackground(String... params) {
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("ci", ci);
+            jsonParam.put("nombre", nombre);
+            jsonParam.put("paterno", paterno);
+            jsonParam.put("materno", materno);
+            jsonParam.put("expedido", expedido);
+            jsonParam.put("categoria", categoria);
+            jsonParam.put("direccion", direccion);
+            jsonParam.put("celular", celular);
+            jsonParam.put("genero", genero);
+            jsonParam.put("correo", correo);
+            jsonParam.put("estado", estado);
+            jsonParam.put("placa", v_placa);
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//guardar datos del conductor
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
+            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=guardar_conductor_pre_registro";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                    DataOutputStream printout;
-                    DataOutputStream input;
 
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
+                            String metros,minuto,normal,de_lujo,con_aire,maletero,pedido,reserva,moto,moto_pedido;
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("ci", ci);
-                    jsonParam.put("nombre", nombre);
-                    jsonParam.put("paterno", paterno);
-                    jsonParam.put("materno", materno);
-                    jsonParam.put("expedido", expedido);
-                    jsonParam.put("categoria", categoria);
-                    jsonParam.put("direccion", direccion);
-                    jsonParam.put("celular", celular);
-                    jsonParam.put("genero", genero);
-                    jsonParam.put("correo", correo);
-                    jsonParam.put("estado", estado);
-                    jsonParam.put("placa", v_placa);
+                                if (suceso.getSuceso().equals("1")) {
+                                    JSONArray dato=respuestaJSON.getJSONArray("perfil_vehiculo");
+                                    v_marca= dato.getJSONObject(0).getString("marca");
+                                    v_modelo=dato.getJSONObject(0).getString("modelo") ;
+                                    v_tipo=dato.getJSONObject(0).getString("tipo") ;
+                                    v_clase= dato.getJSONObject(0).getString("clase") ;
+                                    v_color= dato.getJSONObject(0).getString("color") ;
+                                    v_direccion_imagen_1= dato.getJSONObject(0).getString("direccion_imagen_adelante") ;
+                                    v_direccion_imagen_2= dato.getJSONObject(0).getString("direccion_imagen_atras") ;
+                                    v_direccion_imagen_3= dato.getJSONObject(0).getString("direccion_imagen_interior_adelante") ;
+                                    v_direccion_imagen_4= dato.getJSONObject(0).getString("direccion_imagen_interior_atras") ;
+                                    v_ci_pro= dato.getJSONObject(0).getString("ci") ;
+                                    v_nombre_pro= dato.getJSONObject(0).getString("nombre") ;
+                                    v_paterno_pro= dato.getJSONObject(0).getString("paterno") ;
+                                    v_materno_pro= dato.getJSONObject(0).getString("materno") ;
+                                    v_expedido_pro= dato.getJSONObject(0).getString("expedido") ;
+                                    v_moto_pro= dato.getJSONObject(0).getString("moto");
+                                    v_movil_pro= dato.getJSONObject(0).getString("movil");
+                                    estado="1";
+                                    v_estado="1";
 
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
 
-                    int respuesta = urlConn.getResponseCode();
+                                    direccion_imagen_ruat=respuestaJSON.getString("direccion_imagen_ruat");
+                                    direccion_imagen_soat=respuestaJSON.getString("direccion_imagen_soat");
+                                    v_direccion_imagen_inspeccion_tecnica=respuestaJSON.getString("direccion_imagen_inspeccion_tecnica");
 
-                    StringBuilder result = new StringBuilder();
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+
+
+                                    //final
+                                    saltar_cargar_datos_vehiculo();
+
+                                }  else if(suceso.getSuceso().equals("3")) {
+                                    estado="1";
+                                    v_estado="3";
+                                    //final
+                                    v_marca="";
+                                    v_modelo="";
+                                    v_tipo="";
+                                    v_clase="";
+                                    v_color= "";
+                                    v_direccion_imagen_1="";
+                                    v_direccion_imagen_2= "";
+                                    v_direccion_imagen_3= "";
+                                    v_direccion_imagen_4= "";
+                                    v_ci_pro="";
+                                    v_nombre_pro= "";
+                                    v_paterno_pro= "";
+                                    v_materno_pro= "";
+                                    v_expedido_pro= "";
+                                    v_moto_pro= "";
+                                    v_movil_pro= "";
+                                    v_estado= "";
+
+                                    saltar_cargar_datos_vehiculo();
+
+                                }else  {
+                                    mensaje(suceso.getMensaje());
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje("Falla en tu conexión a Internet.");
+                            }
+
                         }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        estado=suceso.getSuceso();
-
-                        if (error.equals("1")) {
-                            JSONArray dato=respuestaJSON.getJSONArray("perfil_vehiculo");
-                            v_marca= dato.getJSONObject(0).getString("marca");
-                            v_modelo=dato.getJSONObject(0).getString("modelo") ;
-                            v_tipo=dato.getJSONObject(0).getString("tipo") ;
-                            v_clase= dato.getJSONObject(0).getString("clase") ;
-                            v_color= dato.getJSONObject(0).getString("color") ;
-                            v_direccion_imagen_1= dato.getJSONObject(0).getString("direccion_imagen_adelante") ;
-                            v_direccion_imagen_2= dato.getJSONObject(0).getString("direccion_imagen_atras") ;
-                            v_direccion_imagen_3= dato.getJSONObject(0).getString("direccion_imagen_interior_adelante") ;
-                            v_direccion_imagen_4= dato.getJSONObject(0).getString("direccion_imagen_interior_atras") ;
-                            v_ci_pro= dato.getJSONObject(0).getString("ci") ;
-                            v_nombre_pro= dato.getJSONObject(0).getString("nombre") ;
-                            v_paterno_pro= dato.getJSONObject(0).getString("paterno") ;
-                            v_materno_pro= dato.getJSONObject(0).getString("materno") ;
-                            v_expedido_pro= dato.getJSONObject(0).getString("expedido") ;
-                            v_moto_pro= dato.getJSONObject(0).getString("moto");
-                            v_movil_pro= dato.getJSONObject(0).getString("movil");
-                            estado="1";
-                            v_estado="1";
-                            devuelve="1";
-
-
-
-                            direccion_imagen_ruat=respuestaJSON.getString("direccion_imagen_ruat");
-                            direccion_imagen_soat=respuestaJSON.getString("direccion_imagen_soat");
-                            v_direccion_imagen_inspeccion_tecnica=respuestaJSON.getString("direccion_imagen_inspeccion_tecnica");
-
-                        } else if(suceso.getSuceso().equals("3")) {
-                            devuelve = "3";
-                            estado="1";
-                            v_estado="3";
-                        }else
-                        {
-                            devuelve="2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje("Falla en tu conexión a Internet.");
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
+                    return  parametros;
+                }
+            };
 
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
             pDialog = new ProgressDialog(Datos_conductor.this);
             pDialog.setTitle(getString(R.string.app_name));
             pDialog.setMessage("Guardando los datos en el sistema. . .");
             pDialog.setIndeterminate(false);
             pDialog.setCancelable(true);
             pDialog.show();
-        }
 
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pDialog.dismiss();//ocultamos proggress dialog
+            queue.add(myRequest);
+        } catch (Exception e) {
 
-
-            if (s.equals("1")) {
-                saltar_cargar_datos_vehiculo();
-            } else if(s.equals("2")) {
-                mensaje(suceso.getMensaje());
-            }else if(s.equals("3"))
-            {
-                v_marca="";
-                v_modelo="";
-                v_tipo="";
-                v_clase="";
-                v_color= "";
-                v_direccion_imagen_1="";
-                v_direccion_imagen_2= "";
-                v_direccion_imagen_3= "";
-                v_direccion_imagen_4= "";
-                v_ci_pro="";
-                v_nombre_pro= "";
-                v_paterno_pro= "";
-                v_materno_pro= "";
-                v_expedido_pro= "";
-                v_moto_pro= "";
-                v_movil_pro= "";
-                v_estado= "";
-
-                saltar_cargar_datos_vehiculo();
-            }
-            else
-            {
-                mensaje("Falla en tu conexión a Internet.");
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
         }
     }
+
+
+
 
     public void saltar_cargar_datos_vehiculo()
     {

@@ -54,6 +54,8 @@ public class Verificar_numero extends AppCompatActivity implements View.OnClickL
     String estado="";
     String direccion_imagen="";
     String id_vehiculo="";
+    String id_empresa="";
+    String nombre_empresa="";
     Suceso suceso=new Suceso();
 
 
@@ -132,6 +134,8 @@ public class Verificar_numero extends AppCompatActivity implements View.OnClickL
         siguiente.putExtra("categoria",categoria);
         siguiente.putExtra("direccion",direccion);
         siguiente.putExtra("id_vehiculo",id_vehiculo);
+        siguiente.putExtra("id_empresa",id_empresa);
+        siguiente.putExtra("nombre_empresa",nombre_empresa);
 
 
         siguiente.putExtra("direccion_imagen_carnet_1", direccion_imagen_carnet_1);

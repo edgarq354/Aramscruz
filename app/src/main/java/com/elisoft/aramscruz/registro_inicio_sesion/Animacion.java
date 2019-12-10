@@ -116,12 +116,7 @@ public class Animacion extends AppCompatActivity implements View.OnClickListener
         return (perfil.getString("login_usuario","").equals("1"));
 
     }
-    public boolean verificar_login_taxi()
-    {
-        SharedPreferences perfil=getSharedPreferences("perfil",MODE_PRIVATE);
-        return (perfil.getString("login_taxi","").equals("1"));
 
-    }
 
     @Override
     public void onClick(View v) {

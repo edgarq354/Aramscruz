@@ -29,6 +29,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.Condiciones_terminos;
 import com.elisoft.aramscruz.Constants;
 import com.elisoft.aramscruz.Menu_usuario;
@@ -73,6 +80,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Autenticar_celular extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener{
     Button continuar;
@@ -334,14 +343,10 @@ public class Autenticar_celular extends AppCompatActivity implements View.OnClic
 
             if (token != null || token == "") {
                 if(ir_google==1){
-                    Autenticar_celular.Servicio servicio = new Autenticar_celular.Servicio();
-                    servicio.execute(getString(R.string.servidor) + "frmUsuario.php?opcion=registrar_usuario_google_directo", "3", s_nombre, s_apellido, s_email, token,s_id_autentificacion,imei);// parametro que recibe el doinbackground
-
+                    servicio_iniciar_sesion_google(s_nombre, s_apellido, s_email, token,s_id_autentificacion,imei);
                 }else
                 {
-                    Autenticar_celular.Servicio servicio = new Autenticar_celular.Servicio();
-                    servicio.execute(getString(R.string.servidor) + "frmUsuario.php?opcion=registrar_usuario_facebook_directo", "2", s_nombre, s_apellido, s_email, token,s_id_autentificacion,imei);// parametro que recibe el doinbackground
-
+                    servicio_iniciar_sesion_facebook(s_nombre, s_apellido, s_email, token,s_id_autentificacion,imei);
                 }
 
             } else {
@@ -397,286 +402,176 @@ public class Autenticar_celular extends AppCompatActivity implements View.OnClic
     }
 
 
-    public class Servicio extends AsyncTask<String,Integer,String> {
 
 
-        @Override
-        protected String doInBackground(String... params) {
+    public void servicio_iniciar_sesion_google(final String s_nombre,
+                                               final String s_apellido,
+                                               String s_email,
+                                               String token,
+                                               String s_id_autentificacion,
+                                               String imei)
+    {
+        pDialog = new ProgressDialog(Autenticar_celular.this);
+        pDialog.setTitle(getString(R.string.app_name));
+        pDialog.setMessage("Autenticando ....");
+        pDialog.setIndeterminate(false);
+        pDialog.setCancelable(true);
+        pDialog.show();
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//Iniciar sesion
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
 
-                    DataOutputStream printout;
-                    DataOutputStream input;
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("nombre", s_nombre);
+            jsonParam.put("apellido", s_apellido);
+            jsonParam.put("email", s_email);
+            jsonParam.put("token", token);
+            jsonParam.put("id_google", s_id_autentificacion);
+            jsonParam.put("imei", imei);
 
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
+            String url=getString(R.string.servidor) + "frmUsuario.php?opcion=registrar_usuario_google_directo";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("codigo", params[2]);
-                    jsonParam.put("contrasenia", params[3]);
-                    jsonParam.put("token", params[4]);
-                    jsonParam.put("imei", params[5]);
 
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
 
-                    int respuesta = urlConn.getResponseCode();
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-                    StringBuilder result = new StringBuilder();
+                                if (suceso.getSuceso().equals("1")) {
+                                    String id=respuestaJSON.getString("id_usuario");
+                                    String email=respuestaJSON.getString("correo");
+                                    String celular=respuestaJSON.getString("celular");
+                                    cargar_datos(s_nombre,s_apellido,email,id,celular);
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
+                                    //final
+                                    registrado_facebook();
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+                                } else  {
+                                    error_sesion_usuario();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
+                            }
+
                         }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-
-                        if (error.equals("1")) {
-                            JSONArray dato=respuestaJSON.getJSONArray("perfil");
-                            String snombre= dato.getJSONObject(0).getString("nombre");
-                            String sapellido=dato.getJSONObject(0).getString("apellido") ;
-                            String semail= dato.getJSONObject(0).getString("correo") ;
-                            String scelular= dato.getJSONObject(0).getString("celular") ;
-                            String sid= dato.getJSONObject(0).getString("id") ;
-                            String scodigo= dato.getJSONObject(0).getString("codigo") ;
-                            cargar_datos(snombre,sapellido,semail,scelular,sid,scodigo);
-
-                            devuelve="1";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje_error("Falla en tu conexión a Internet.");
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
-            //Iniciar sesion con Facebook registrando la cuenta.
-            if (params[1] == "2") {
-                try {
-                    HttpURLConnection urlConn;
+                    return  parametros;
+                }
+            };
 
-                    DataOutputStream printout;
-                    DataOutputStream input;
 
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
 
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("nombre", params[2]);
-                    jsonParam.put("apellido", params[3]);
-                    jsonParam.put("email", params[4]);
-                    jsonParam.put("token", params[5]);
-                    jsonParam.put("id_facebook", params[6]);
-                    jsonParam.put("imei", params[7]);
+            queue.add(myRequest);
+        } catch (Exception e) {
+            pDialog.cancel();
+            mensaje_error("Falla en tu conexión a Internet.");
+        }
+    }
 
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
 
-                    int respuesta = urlConn.getResponseCode();
+    public void servicio_iniciar_sesion_facebook(final String s_nombre,
+                                                 final String s_apellido,
+                                                 String s_email,
+                                                 String token,
+                                                 String s_id_autentificacion,
+                                                 String imei)
+    {
+        pDialog = new ProgressDialog(Autenticar_celular.this);
+        pDialog.setTitle(getString(R.string.app_name));
+        pDialog.setMessage("Autenticando ....");
+        pDialog.setIndeterminate(false);
+        pDialog.setCancelable(true);
+        pDialog.show();
 
-                    StringBuilder result = new StringBuilder();
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("nombre", s_nombre);
+            jsonParam.put("apellido", s_apellido);
+            jsonParam.put("email", s_email);
+            jsonParam.put("token", token);
+            jsonParam.put("id_facebook", s_id_autentificacion);
+            jsonParam.put("imei", imei);
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+            String url=getString(R.string.servidor) + "frmUsuario.php?opcion=registrar_usuario_facebook_directo";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            pDialog.cancel();
+
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    String id=respuestaJSON.getString("id_usuario");
+                                    String email=respuestaJSON.getString("correo");
+                                    String celular=respuestaJSON.getString("celular");
+                                    cargar_datos(s_nombre,s_apellido,email,id,celular);
+
+                                    //final
+                                    registrado_facebook();
+
+                                } else  {
+                                    error_sesion_usuario();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
+                            }
+
                         }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-
-                        if (error.equals("1")) {
-                            String id=respuestaJSON.getString("id_usuario");
-                            String email=respuestaJSON.getString("correo");
-                            String celular=respuestaJSON.getString("celular");
-                            cargar_datos(s_nombre,s_apellido,email,id,celular);
-                            devuelve="3";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.cancel();
+                    mensaje_error("Falla en tu conexión a Internet.");
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
-
-            //Iniciar sesion con Google registrando la cuenta.
-            if (params[1] == "3") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    DataOutputStream printout;
-                    DataOutputStream input;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("nombre", params[2]);
-                    jsonParam.put("apellido", params[3]);
-                    jsonParam.put("email", params[4]);
-                    jsonParam.put("token", params[5]);
-                    jsonParam.put("id_google", params[6]);
-                    jsonParam.put("imei", params[7]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-
-                        if (error.equals("1")) {
-                            String id=respuestaJSON.getString("id_usuario");
-                            String email=respuestaJSON.getString("correo");
-                            String celular=respuestaJSON.getString("celular");
-                            cargar_datos(s_nombre,s_apellido,email,id,celular);
-                            devuelve="3";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    return  parametros;
                 }
-            }
-            return devuelve;
-        }
+            };
 
 
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Autenticar_celular.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Autenticando ....");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(true);
-            pDialog.show();
-        }
 
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pDialog.dismiss();//ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                Autenticar_celular();
-            } else if(s.equals("2")) {
-                error_sesion_usuario();
-            }else if(s.equals("3"))
-            {
-                registrado_facebook();
-            }
-            else
-            {
-                mensaje("Falla en tu conexión a Internet.");
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
+            queue.add(myRequest);
+        } catch (Exception e) {
+            pDialog.cancel();
+            mensaje_error("Falla en tu conexión a Internet.");
         }
     }
 
