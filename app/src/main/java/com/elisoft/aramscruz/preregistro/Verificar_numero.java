@@ -134,6 +134,7 @@ public class Verificar_numero extends AppCompatActivity implements View.OnClickL
         siguiente.putExtra("categoria",categoria);
         siguiente.putExtra("direccion",direccion);
         siguiente.putExtra("id_vehiculo",id_vehiculo);
+
         siguiente.putExtra("id_empresa",id_empresa);
         siguiente.putExtra("nombre_empresa",nombre_empresa);
 
@@ -220,6 +221,9 @@ public class Verificar_numero extends AppCompatActivity implements View.OnClickL
                             direccion_imagen=dato.getJSONObject(0).getString("direccion_imagen");
                             id_vehiculo=dato.getJSONObject(0).getString("id_vehiculo");
 
+                            id_empresa=dato.getJSONObject(0).getString("id_empresa");
+                            nombre_empresa=dato.getJSONObject(0).getString("nombre_empresa");
+
 
                             direccion_imagen_carnet_1=respuestaJSON.getString("direccion_imagen_carnet_1");
                             direccion_imagen_carnet_2=respuestaJSON.getString("direccion_imagen_carnet_2");
@@ -286,6 +290,9 @@ public class Verificar_numero extends AppCompatActivity implements View.OnClickL
                 expedido="";
                 direccion_imagen="";
                 id_vehiculo="";
+
+                id_empresa="";
+                nombre_empresa="";
 
                 saltar_cargar_datos_conductor();
             }
