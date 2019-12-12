@@ -189,18 +189,16 @@
 
 
             <android.support.design.widget.TextInputLayout
-    android:theme="@style/TextLabel"
+                android:theme="@style/TextLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-
                 >
 
                 <EditText
                     android:id="@+id/et_modelo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ems="10"
                     android:hint="Modelo (Año)"
                     android:inputType="phone"
                     android:text="2018"
