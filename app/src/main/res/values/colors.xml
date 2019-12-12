@@ -19,4 +19,8 @@
 
     <color name="colorChat">#C0EEC1</color>
     <color name="colorChatOscuro">#A0D3A1</color>
+
+    <color name="colorGrayLight">#fafafa</color>
+    <color name="colorStarBlue">#09c6df</color>
+    <color name="colorEndBlue">#0bcce6</color>
 </resources>

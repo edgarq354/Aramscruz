@@ -146,11 +146,12 @@ android:layout_gravity="center">
 
 
 <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
     android:id="@+id/til_apellido"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:errorTextAppearance="@style/Error"
-    android:theme="@style/TextLabel"
+
     >
 
     <EditText
