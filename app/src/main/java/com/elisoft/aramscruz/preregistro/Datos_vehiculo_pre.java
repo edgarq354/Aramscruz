@@ -77,6 +77,9 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
     String v_movil_pro= "";
     String v_radicatoria= "";
 
+    String id_empresa="";
+    String nombre_empresa="";
+
     Suceso suceso;
     ProgressDialog pDialog;
     AlertDialog alert2 = null;
@@ -120,6 +123,9 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
             et_tipo.setText(bundle.getString("tipo"));
             et_clase.setText(bundle.getString("clase"));
             et_color.setText(bundle.getString("color"));
+
+            id_empresa=bundle.getString("id_empresa");
+            nombre_empresa=bundle.getString("nombre_empresa");
 
             v_direccion_imagen_1=bundle.getString("direccion_imagen_1");
             v_direccion_imagen_2=bundle.getString("direccion_imagen_2");
@@ -236,6 +242,10 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
                     jsonParam.put("estado", estado);
                     jsonParam.put("movil",v_movil_pro);
                     jsonParam.put("moto", v_moto_pro);
+
+
+                    jsonParam.put("id_empresa", id_empresa);
+                    jsonParam.put("nombre_empresa", nombre_empresa);
 
                     //Envio los prametro por metodo post
                     OutputStream os = urlConn.getOutputStream();

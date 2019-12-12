@@ -9,10 +9,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -39,6 +42,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +63,8 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
     String ci="";
     String direccion_imagen="";
     String id_vehiculo="";
+    String id_empresa="";
+    String nombre_empresa="";
 
 
 
@@ -98,7 +104,13 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
 
     EditText et_placa,et_nombre,et_paterno,et_materno,et_correo,et_celular,et_direccion,et_ci;
     RadioButton rb_hombre,rb_mujer;
-    Spinner sp_categoria,sp_expedido;
+    Spinner sp_categoria,
+            sp_expedido,
+            sp_empresa;
+
+    ArrayList<String> lista_nombre_empresa = new ArrayList<String>();
+    ArrayList<String> lista_id_empresa = new ArrayList<String>();
+
 
 
 
@@ -121,11 +133,30 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
         et_placa=(EditText)findViewById(R.id.et_placa);
 
         sp_categoria=(Spinner)findViewById(R.id.sp_categoria);
+        sp_empresa=(Spinner)findViewById(R.id.sp_empresa);
         sp_expedido=(Spinner)findViewById(R.id.sp_departamento);
         rb_hombre=(RadioButton)findViewById(R.id.rb_hombre);
         rb_mujer=(RadioButton)findViewById(R.id.rb_mujer);
 
 
+
+
+        sp_empresa.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id)
+            {
+                id_empresa=lista_id_empresa.get(pos);
+                nombre_empresa=lista_nombre_empresa.get(pos);
+
+                Toast.makeText(adapterView.getContext(),
+                        id_empresa+" : "+nombre_empresa, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent)
+            {    }
+        });
 
 
 
@@ -146,6 +177,9 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
             estado=bundle.getString("estado");
             direccion_imagen=bundle.getString("direccion_imagen");
             et_placa.setText(bundle.getString("id_vehiculo"));
+
+            id_empresa=bundle.getString("id_empresa");
+            nombre_empresa=bundle.getString("nombre_empresa");
 
 
             direccion_imagen_carnet_1=bundle.getString("direccion_imagen_carnet_1");
@@ -168,6 +202,10 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
         }
 
         bt_siguiente.setOnClickListener(this);
+
+        servicio_get_empresa_volley();
+
+
     }
 
     @Override
@@ -238,24 +276,27 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
                 expedido="PD";
                 break;
         }
-        if(nombre.length()>2) {
-            if (materno.length() > 2){
-                if (direccion.length()>5){
-                    if (correo.length()>10){
-                        guardar_datos_conductor_volley();
-                    }else
-                    {
-                        mensaje("Ingrese su correo electronico");
+        if(id_empresa.equals("")==false) {
+            if (nombre.length() > 2) {
+                if (materno.length() > 2) {
+                    if (direccion.length() > 5) {
+                        if (correo.length() > 10) {
+                            guardar_datos_conductor_volley();
+                        } else {
+                            mensaje("Ingrese su correo electronico");
+                        }
+                    } else {
+                        mensaje("Ingrese su direccion de domicilio");
                     }
-                }else{
-                    mensaje("Ingrese su direccion de domicilio");
+                } else {
+                    mensaje("Ingrese su apellido materno");
                 }
-            }else{
-                mensaje("Ingrese su apellido materno");
+            } else {
+                mensaje("Ingrese su nombre");
             }
         }else
         {
-            mensaje("Ingrese su nombre");
+            mensaje("Seleccione una empresa de Radio Movil");
         }
 
     }
@@ -288,6 +329,9 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
             jsonParam.put("correo", correo);
             jsonParam.put("estado", estado);
             jsonParam.put("placa", v_placa);
+
+            jsonParam.put("nombre_empresa", nombre_empresa);
+            jsonParam.put("id_empresa", id_empresa);
 
             String url=getString(R.string.servidor) + "frmTaxi.php?opcion=guardar_conductor_pre_registro";
             RequestQueue queue = Volley.newRequestQueue(this);
@@ -401,6 +445,72 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
 
         }
     }
+    private void servicio_get_empresa_volley() {
+
+
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+
+            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_empresa";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    JSONArray usu=respuestaJSON.getJSONArray("lista");
+
+                                    lista_nombre_empresa.clear();
+                                    lista_id_empresa.clear();
+
+                                    for (int i=0;i<usu.length();i++) {
+                                        String sid = usu.getJSONObject(i).getString("id");
+                                        String snombre = usu.getJSONObject(i).getString("razon_social");
+                                        lista_nombre_empresa.add(snombre);
+                                        lista_id_empresa.add(sid);
+
+                                    }
+                                    sp_empresa.setAdapter(new ArrayAdapter<String>(Datos_conductor.this, R.layout.spinner_lista_empresa, lista_nombre_empresa));
+
+
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+            queue.add(myRequest);
+        } catch (Exception e) {
+
+        }
+    }
 
 
 
@@ -434,6 +544,9 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
             siguiente.putExtra("nombre", nombre);
             siguiente.putExtra("paterno", paterno);
             siguiente.putExtra("materno", materno);
+
+            siguiente.putExtra("id_empresa", id_empresa);
+            siguiente.putExtra("nombre_empresa", nombre_empresa);
 
 
             siguiente.putExtra("direccion_imagen_soat", direccion_imagen_soat);

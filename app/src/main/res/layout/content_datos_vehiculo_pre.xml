@@ -42,11 +42,12 @@
 
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:id="@+id/til_ci"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -101,10 +102,11 @@
             >
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -129,10 +131,11 @@
             >
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -156,10 +159,11 @@
 
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -185,10 +189,11 @@
 
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -216,11 +221,12 @@
 
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -312,10 +318,11 @@
 
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
                 <EditText
                     android:id="@+id/et_ci_pro"
@@ -377,11 +384,12 @@
                 android:src="@mipmap/ic_nombre"/>
 
             <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
                 android:id="@+id/til_telefono"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:errorTextAppearance="@style/Error"
-                android:textColorHint="@color/colorAccent"
+
                 >
 
                 <EditText
@@ -405,10 +413,11 @@
 
 
         <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:errorTextAppearance="@style/Error"
-            android:textColorHint="@color/colorAccent"
+
             >
 
             <EditText
@@ -432,10 +441,11 @@
 
 
         <android.support.design.widget.TextInputLayout
+    android:theme="@style/TextLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:errorTextAppearance="@style/Error"
-            android:textColorHint="@color/colorAccent"
+
             >
 
             <EditText
