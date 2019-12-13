@@ -82,6 +82,41 @@ public class MyNotificationManager {
 
     }
 
+    public void notificacion_sin_activity(String title, String message ) {
+        Uri sonido = Uri.parse("android.resource://"+ this.mCtx.getPackageName() + "/" + R.raw.notificacion);//sonido
+
+
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mCtx);
+        NotificationManager notificationManager = (NotificationManager) mCtx.getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+
+        mBuilder = new NotificationCompat.Builder(mCtx);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
+        mBuilder.setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(false)
+                .setSound(sonido);
+
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+        {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            assert notificationManager != null;
+            mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+        assert notificationManager != null;
+        notificationManager.notify(0 /* Request Code */, mBuilder.build());
+
+    }
+
 
 
     public void notificacion(String title, String message, Intent intent) {

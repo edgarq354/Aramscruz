@@ -9,6 +9,15 @@ import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.elisoft.aramscruz.notificaciones.SharedPrefManager;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +32,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -131,7 +142,7 @@ public class Servicio_pedir_movil extends IntentService {
                 startActivity(numero);
             }else {
                 try {
-                    Servicio_pedir_cancelar hilo_taxi_cancelar=new Servicio_pedir_cancelar();
+                    //Servicio_pedir_cancelar hilo_taxi_cancelar=new Servicio_pedir_cancelar();
                     SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
                     SharedPreferences pedido_proceso=getSharedPreferences("pedido_en_proceso",MODE_PRIVATE);
                     SharedPreferences usuario = getSharedPreferences("perfil", MODE_PRIVATE);
@@ -150,8 +161,7 @@ public class Servicio_pedir_movil extends IntentService {
                     }
                     if(id_pedido!=0) {
                         try {
-                            hilo_taxi_cancelar = new Servicio_pedir_cancelar();
-                            hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id,String.valueOf(id_pedido));// parametro que recibe el doinbackground
+                            servicio_pedir_cancelar_volley(id,String.valueOf(id_pedido));
                         } catch (Exception e) {
                             saltar_menu_principal();
                         }
@@ -212,72 +222,54 @@ public class Servicio_pedir_movil extends IntentService {
 
     public void verificar_pedido(int diametro_minimo, int diametro_maximo, int enviar_notificacion) {
         try {
-            Servicio_pedir_taxi hilo_taxi_obtener_dato=new Servicio_pedir_taxi();
-            hilo_taxi_obtener_dato.execute(getString(R.string.servidor) + "frmPedido.php?opcion=verificar_si_acepto_pedido_2", "2", String.valueOf(id_pedido),String.valueOf(diametro_minimo),String.valueOf(diametro_maximo),String.valueOf(enviar_notificacion));
+            servicio_pedir_taxi_volley( String.valueOf(id_pedido),String.valueOf(diametro_minimo),String.valueOf(diametro_maximo),String.valueOf(enviar_notificacion));
         } catch (Exception e) {
         }
     }
 
 
-    public class Servicio_pedir_taxi extends AsyncTask<String, Integer, String> {
 
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
+    //servicio de pedir taxi: enviar notificacion
+    private void servicio_pedir_taxi_volley(String id_pedido,String diametro_minimo,String diametro_maximo,String enviar_notificacion) {
 
 
-            //verificar si alguien aceptotu pedido..
-            // verificar si tiene un pedido que aun no ha finalizado....
-            //obtener datos del pedido en curso.....
+        try {
 
-                if (params[1] == "2") { //mandar JSON metodo post para login
-                    if(!isCancelled()) {
-                        try {
 
-                            HttpURLConnection urlConn;
-                            url = new URL(cadena);
-                            urlConn = (HttpURLConnection) url.openConnection();
-                            urlConn.setDoInput(true);
-                            urlConn.setDoOutput(true);
-                            urlConn.setUseCaches(false);
-                            urlConn.setRequestProperty("Content-Type", "application/json");
-                            urlConn.setRequestProperty("Accept", "application/json");
-                            urlConn.connect();
 
-                            //se crea el objeto JSON
-                            JSONObject jsonParam = new JSONObject();
-                            jsonParam.put("id_pedido", params[2]);
-                            jsonParam.put("diametro_minimo", params[3]);
-                            jsonParam.put("diametro_maximo", params[4]);
-                            jsonParam.put("enviar_notificacion", params[5]);
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
 
-                            //Envio los prametro por metodo post
-                            OutputStream os = urlConn.getOutputStream();
-                            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                            writer.write(jsonParam.toString());
-                            writer.flush();
-                            writer.close();
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_pedido",id_pedido);
+            jsonParam.put("diametro_minimo", diametro_minimo);
+            jsonParam.put("diametro_maximo", diametro_maximo);
+            jsonParam.put("enviar_notificacion", enviar_notificacion);
 
-                            int respuesta = urlConn.getResponseCode();
 
-                            StringBuilder result = new StringBuilder();
+            jsonParam.put("token", token);
 
-                            if (respuesta == HttpURLConnection.HTTP_OK) {
 
-                                String line;
-                                BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                                while ((line = br.readLine()) != null) {
-                                    result.append(line);
-                                }
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=verificar_si_acepto_pedido_2";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                                SystemClock.sleep(950);
-                                JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                                suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+
+
+                            try {
+
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
                                 if (suceso.getSuceso().equals("1")) {
+
                                     JSONArray dato = respuestaJSON.getJSONArray("pedido");
                                     String snombre = dato.getJSONObject(0).getString("nombre_taxi");
                                     String scelular = dato.getJSONObject(0).getString("celular");
@@ -317,213 +309,132 @@ public class Servicio_pedir_movil extends IntentService {
                                     estado_pedido=1;
 
 
-                                    devuelve = "8";
                                 } else if (suceso.getSuceso().equals("2")) {
-                                    devuelve = "9";
-
-
                                 } else {
-                                    devuelve = "10";
                                     estado_pedido=3;
                                 }
+                            } catch (JSONException e) {
+
+                                e.printStackTrace();
 
                             }
 
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
                         }
-                    }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
                 }
-
-
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            //   tv_mensaje_pedido.setText("Buscando el Taxi mas Próximo.");
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-             if (s.equals("8") == true) {
-                //verificar si alguien acepto el pedido.
-                 SharedPreferences pedido = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
-                 Intent servicio_contacto = new Intent(Servicio_pedir_movil.this, Servicio_guardar_contacto.class);
-                 servicio_contacto.setAction(Constants.ACTION_RUN_ISERVICE);
-                 servicio_contacto.putExtra("nombre",pedido.getString("nombre_taxi", ""));
-                 servicio_contacto.putExtra("telefono",pedido.getString("celular", ""));
-                 startService(servicio_contacto);
-            } else if (s.equals("9") == true) {
-
-
             }
-            else {
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
-            }
+                    return  parametros;
+                }
+            };
 
-        }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
+            queue.add(myRequest);
 
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
+
+        } catch (Exception e) {
+
         }
 
     }
 
 
 
-    public class Servicio_pedir_cancelar extends AsyncTask<String, Integer, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
+    private void servicio_pedir_cancelar_volley(String id_usuario,String id_pedido) {
 
 
-            //verificar si alguien aceptotu pedido..
-            // verificar si tiene un pedido que aun no ha finalizado....
-            //obtener datos del pedido en curso.....
+        try {
 
 
-            //2: CANCELAR EL PEDIDO
-            if (params[1] == "1") {
-                if(!isCancelled()){
-                    try {
-                        HttpURLConnection urlConn;
 
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
 
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("id_usuario", params[2]);
-                        jsonParam.put("id_pedido", params[3]);
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario",id_usuario);
+            jsonParam.put("id_pedido", id_pedido);
 
-                        int respuesta = urlConn.getResponseCode();
+            jsonParam.put("token", token);
 
-                        StringBuilder result = new StringBuilder();
 
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
 
-                            SystemClock.sleep(1500);
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                            if (suceso.getSuceso().equals("1")) {
-                                SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
-                                SharedPreferences.Editor editor = pedido.edit();
-                                editor.putString("id_pedido", "");
-                                editor.commit();
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
 
-                                devuelve = "6";
-                            } else
 
-                            {
 
-                                devuelve = "7";
+                            try {
+
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = pedido.edit();
+                                    editor.putString("id_pedido", "");
+                                    editor.commit();
+                                    //-----------------final-------------
+                                    SharedPreferences pedido2 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor2 = pedido2.edit();
+                                    editor2.putString("id_pedido", "");
+                                    editor2.putString("estado", "4");
+                                    editor2.commit();
+
+
+                                } else if (suceso.getSuceso().equals("2")) {
+                                } else {
+
+                                }
+
+                                saltar_menu_principal();
+
+                            } catch (JSONException e) {
+
+                                e.printStackTrace();
+
                             }
 
                         }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            //   tv_mensaje_pedido.setText("Buscando el Taxi mas Próximo.");
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-            if(s.equals("500")==true)
-            {
-
-            }else if(s.equals("6"))
-            {
-                SharedPreferences pedido2 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
-                SharedPreferences.Editor editor2 = pedido2.edit();
-                editor2.putString("id_pedido", "");
-                editor2.putString("estado", "4");
-                editor2.commit();
+                    return  parametros;
+                }
+            };
 
 
+            queue.add(myRequest);
 
-            }else if(s.equals("7"))
-            {
 
-            }
-            else {
+        } catch (Exception e) {
 
-            }
-
-            saltar_menu_principal();
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
         }
 
     }
-
 
 
 

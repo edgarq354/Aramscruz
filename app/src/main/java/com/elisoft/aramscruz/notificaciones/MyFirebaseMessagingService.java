@@ -161,13 +161,22 @@ switch (tipo)
         break;
     case  "4":
         //notificacion cuando el conductor inicio la carrera.
-        Intent dialogo_carrera = new Intent(this, Notificacion_iniciar_carrera.class);
-        dialogo_carrera.putExtra("mensaje",message);
-        dialogo_carrera.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(dialogo_carrera);
-        mNotificationManager.notificacion_con_activity(title, message, dialogo_carrera);
-        cargar_notificacion(title,message,cliente,id_pedido,nombre,latitud,longitud,tipo,fecha,hora,indicacion);
+        //Intent dialogo_carrera = new Intent(this, Notificacion_iniciar_carrera.class);
+        //dialogo_carrera.putExtra("mensaje",message);
+       // dialogo_carrera.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        //startActivity(dialogo_carrera);
+        //mNotificationManager.notificacion_con_activity(title, message, dialogo_carrera);
+        //cargar_notificacion(title,message,cliente,id_pedido,nombre,latitud,longitud,tipo,fecha,hora,indicacion);
+        SharedPreferences pedido2 = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
+        SharedPreferences.Editor editor = pedido2.edit();
+        editor.putString("id_pedido", "");
+        editor.commit();
 
+        SharedPreferences pedido22 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
+        SharedPreferences.Editor editor2 = pedido22.edit();
+        editor2.putString("abordo", "1");
+        editor2.commit();
+        mNotificationManager.notificacion_sin_activity(title, message );
         break;
     case  "5":
         // crear una intención para la notificación

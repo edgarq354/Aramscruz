@@ -51,10 +51,18 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.SqLite.AdminSQLiteOpenHelper;
 import com.elisoft.aramscruz.chat.Chat;
 import com.elisoft.aramscruz.compartir.CUsuario;
 import com.elisoft.aramscruz.compartir.Usuario_select_adapter;
+import com.elisoft.aramscruz.notificaciones.SharedPrefManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -94,6 +102,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, GoogleApiClient.OnConnectionFailedListener,
         GoogleApiClient.ConnectionCallbacks,
@@ -310,8 +320,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
                 try {
                     int id_pedido= Integer.parseInt(prefe.getString("id_pedido",""));
-                    Servicio hilo_taxi = new Servicio();
-                    hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido", "5", String.valueOf(id_pedido));// parametro que recibe el doinbackground
+                    //Servicio hilo_taxi = new Servicio();
+                    //hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido", "5", String.valueOf(id_pedido));// parametro que recibe el doinbackground
+                    servicio_get_pedido_volley(id_pedido);
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -507,8 +518,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                                 try {
                                     tv_mensaje_pedido.setText("Cancelando su solicitud...");
                                     hilo_taxi_cancelar.cancel(true);
-                                    hilo_taxi_cancelar=new Servicio_pedir_cancelar();
-                                    hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id_usuario,pedido.getString("id_pedido",""));// parametro que recibe el doinbackground
+                                    //hilo_taxi_cancelar=new Servicio_pedir_cancelar();
+                                    //hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id_usuario,pedido.getString("id_pedido",""));// parametro que recibe el doinbackground
+                                    servicio_cancelar_pedido_en_camino( id_usuario,pedido.getString("id_pedido",""));
                                 } catch (Exception e) {
 
                                 }
@@ -540,7 +552,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                     dialogo1.setPositiveButton("SI", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialogo1, int id) {
                             //cargamos los datos
-                            Servicio_pedir_taxi hilo_taxi = new Servicio_pedir_taxi();
+                            //Servicio_pedir_taxi hilo_taxi = new Servicio_pedir_taxi();
                             SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
                             SharedPreferences usuario = getSharedPreferences("perfil", MODE_PRIVATE);
                             String id_usuario = usuario.getString("id_usuario", "");
@@ -548,7 +560,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                             //hilo_taxi.execute(getString(R.string.servidor)+"frmTaxi.php?opcion=get_taxis_en_rango", "1","64.455","-18.533");// parametro que recibe el doinbackground
                             if(pedido.getString("id_pedido","").equals("")==false && pedido.getString("id_pedido","0").equals("0")==false) {
                                 try {
-                                    hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id_usuario,pedido.getString("id_pedido",""));// parametro que recibe el doinbackground
+                                    //hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id_usuario,pedido.getString("id_pedido",""));// parametro que recibe el doinbackground
+                                    servicio_cancelar_pedido_en_camino( id_usuario,pedido.getString("id_pedido",""));
                                 } catch (Exception e) {
 
                                 }
@@ -612,8 +625,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                 hilo_pedir_taxi.cancel(true);
                 hilo_taxi_obtener_dato.cancel(true);
                 tv_mensaje_pedido.setText("Cancelando su solicitud..");
-                hilo_taxi_cancelar = new Servicio_pedir_cancelar();
-                hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id,String.valueOf(id_pedido));// parametro que recibe el doinbackground
+                //hilo_taxi_cancelar = new Servicio_pedir_cancelar();
+                //hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id,String.valueOf(id_pedido));// parametro que recibe el doinbackground
+                servicio_cancelar_pedido_sin_aceptar(id,String.valueOf(id_pedido));
             } catch (Exception e) {
 
             }
@@ -809,8 +823,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                     SharedPreferences perfil=getSharedPreferences("perfil",MODE_PRIVATE);
                     String detalle=bt_voy_asliendo.getText().toString();
 
-                    Servicio_notificacion hilo = new Servicio_notificacion();
-                    hilo.execute(getString(R.string.servidor) + "frmPedido.php?opcion=enviar_notificacion_usuario", "1",pedido.getString("id_pedido",""),perfil.getString("id_usuario",""),detalle);// parametro que recibe el doinbackground
+                     servicio_notificacion_volley(pedido.getString("id_pedido",""),perfil.getString("id_usuario",""),detalle);
+
                 }catch (Exception e)
                 {
                     mensaje("No se pudo enviar la notificación.");
@@ -827,8 +841,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                     SharedPreferences perfil=getSharedPreferences("perfil",MODE_PRIVATE);
                     String detalle=bt_estamos_esperando.getText().toString();
 
-                    Servicio_notificacion hilo = new Servicio_notificacion();
-                    hilo.execute(getString(R.string.servidor) + "frmPedido.php?opcion=enviar_notificacion_usuario", "1",pedido.getString("id_pedido",""),perfil.getString("id_usuario",""),detalle);// parametro que recibe el doinbackground
+                    servicio_notificacion_volley(pedido.getString("id_pedido",""),perfil.getString("id_usuario",""),detalle);
                 }catch (Exception e)
                 {
                     mensaje("No se pudo enviar la notificación.");
@@ -845,8 +858,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                     SharedPreferences perfil=getSharedPreferences("perfil",MODE_PRIVATE);
                     String detalle=bt_llameme.getText().toString();
 
-                    Servicio_notificacion hilo = new Servicio_notificacion();
-                    hilo.execute(getString(R.string.servidor) + "frmPedido.php?opcion=enviar_notificacion_usuario", "1",pedido.getString("id_pedido",""),perfil.getString("id_usuario",""),detalle);// parametro que recibe el doinbackground
+                    servicio_notificacion_volley(pedido.getString("id_pedido",""),perfil.getString("id_usuario",""),detalle);
                 }catch (Exception e)
                 {
                     mensaje("No se pudo enviar la notificación.");
@@ -913,21 +925,39 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
             tv_mensaje_pedido.setText("Enviando su solicitud a los Taxistas...");
             hilo_pedir_taxi.cancel(true);
+            /*
             hilo_pedir_taxi=new Servicio_pedir_taxi();
-            hilo_pedir_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=pedir_taxi", "7", id,
+            hilo_pedir_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=pedir_taxi", "7",
+                    id,
                     String.valueOf(latitud),
                     String.valueOf(longitud),
                     nombre,
                     referencia,
                     String.valueOf(numero_casa),
-                    imei, String.valueOf(clase_vehiculo),
+                    imei,
+                    String.valueOf(clase_vehiculo),
                     String.valueOf(tipo_pedido_empresa),
                     direccion,
                     String.valueOf(latitud_final),
                     String.valueOf(longitud_final),
                     estado_billetera
                     );// parametro que recibe el doinbackground
-
+            */
+            servicio_pedir_taxi(
+                    id,
+                    String.valueOf(latitud),
+                    String.valueOf(longitud),
+                    nombre,
+                    referencia,
+                    String.valueOf(numero_casa),
+                    imei,
+                    String.valueOf(clase_vehiculo),
+                    String.valueOf(tipo_pedido_empresa),
+                    direccion,
+                    String.valueOf(latitud_final),
+                    String.valueOf(longitud_final),
+                    estado_billetera
+            );
 
 
         } catch (Exception e) {
@@ -1800,7 +1830,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                 finish();
             }else if(s.equals("4"))
              {
-                 Servicio hilo_taxi = new Servicio();
+/*                 Servicio hilo_taxi = new Servicio();
                  SharedPreferences usuario = getSharedPreferences("perfil", MODE_PRIVATE);
                  String id_usuario = usuario.getString("id_usuario", "");
 
@@ -1810,7 +1840,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                      hilo_taxi.execute(getString(R.string.servidor) + "frmCompartir_carrera.php?opcion=enviar_panico", "3", id_usuario,id_pedido);
                  } catch (Exception e) {
                  }
-
+*/
              }else if(s.equals("5"))
              {
                  mensaje(suceso.getMensaje());
@@ -1835,136 +1865,532 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
     }
 
-    // comenzar el servicio con el motista....
-    public class Servicio_notificacion extends AsyncTask<String,Integer,String> {
 
 
-        @Override
-        protected String doInBackground(String... params) {
+///// SERVICIO VOLLEY
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-            //ENVIAR NOTIFICACION AL USUARIO
-            if (params[1] == "1") { //mandar JSON metodo post ENVIAR LA CONFIRMACION DEL LLEGADO DEL MOTISTA.,,,
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_pedido", params[2]);
-                    jsonParam.put("id_usuario", params[3]);
-                    jsonParam.put("detalle", params[4]);
+    private void servicio_cancelar_pedido_en_camino(String id_usuario, String id_pedido) {
 
 
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
+        try {
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
 
-                    int respuesta = urlConn.getResponseCode();
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario",id_usuario);
+            jsonParam.put("id_pedido", id_pedido);
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                    StringBuilder result = new StringBuilder();
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+                            try {
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+
+                                    SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = pedido.edit();
+                                    editor.putString("id_pedido", "");
+                                    editor.commit();
+
+
+                                    ///////////////////////////////////////
+
+                                    SharedPreferences pedido2 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
+                                    String id_pedido=pedido2.getString("id_pedido","");
+
+                                    SharedPreferences.Editor editor2 = pedido2.edit();
+                                    editor2.putString("id_pedido", "");
+                                    editor2.putString("estado", "4");
+                                    editor2.commit();
+                                    Intent cancelar_pedido=new Intent(getApplicationContext(),Cancelar_pedido_usuario.class);
+                                    cancelar_pedido.putExtra("id_pedido",id_pedido);
+                                    startActivity(cancelar_pedido);
+                                    finish();
+
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+
+                                    mensaje(suceso.getMensaje());
+                                }
+                                else
+                                {
+                                    mensaje_error_final("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error_final("Falla en tu conexión a Internet.");
+                            }
+
                         }
-
-                        SystemClock.sleep(950);
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="1";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mensaje_error_final("Falla en tu conexión a Internet.");
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
 
 
-
-            return devuelve;
-        }
+            queue.add(myRequest);
 
 
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Pedido_usuario.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Autenticando ....");
-            pDialog.setIndeterminate(true);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pDialog.cancel();//ocultamos proggress dialog
-            // Log.e("respuesta del servidor=", "" + s);
-            if(s.equals("1"))
-            {
-                //mensaje(suceso.getMensaje());
-            }else
-            if(s.equals("500"))
-            {
-                mensaje(suceso.getMensaje());
-            }
-            else if(s.equals("2"))
-            {
-
-                mensaje(suceso.getMensaje());
-            }
-            else
-            {
-                mensaje_error("No pudimos conectarnos al servidor.\nVuelve a intentarlo.");
-
-            }
-
-
-
+        } catch (Exception e) {
 
         }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
 
     }
+
+    private void servicio_cancelar_pedido_sin_aceptar(String id_usuario, String id_pedido) {
+
+
+        try {
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario",id_usuario);
+            jsonParam.put("id_pedido", id_pedido);
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario_sin_aceptar";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+                            try {
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+
+                                    SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = pedido.edit();
+                                    editor.putString("id_pedido", "");
+                                    editor.commit();
+
+
+                                    ///////////////////////////////////////
+
+                                    SharedPreferences pedido2 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
+                                    String id_pedido=pedido2.getString("id_pedido","");
+
+                                    SharedPreferences.Editor editor2 = pedido2.edit();
+                                    editor2.putString("id_pedido", "");
+                                    editor2.putString("estado", "4");
+                                    editor2.commit();
+                                    Intent cancelar_pedido=new Intent(getApplicationContext(),Cancelar_pedido_usuario.class);
+                                    cancelar_pedido.putExtra("id_pedido",id_pedido);
+                                    startActivity(cancelar_pedido);
+                                    finish();
+
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+
+                                    mensaje(suceso.getMensaje());
+                                }
+                                else
+                                {
+                                    mensaje_error_final("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error_final("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mensaje_error_final("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+            queue.add(myRequest);
+
+
+        } catch (Exception e) {
+
+        }
+
+    }
+
+
+    public void servicio_get_pedido_volley(int id_pedido){
+        try {
+
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_pedido", String.valueOf(id_pedido));
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+                            try {
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    JSONArray adato = respuestaJSON.getJSONArray("pedido");
+
+                                    String scelular = adato.getJSONObject(0).getString("celular");
+                                    String sid_taxi = adato.getJSONObject(0).getString("id_taxi");
+                                    String smarca = adato.getJSONObject(0).getString("marca");
+                                    String splaca = adato.getJSONObject(0).getString("placa");
+                                    String scolor = adato.getJSONObject(0).getString("color");
+                                    String sdireccion_imagen_adelante = adato.getJSONObject(0).getString("direccion_imagen_adelante");
+                                    String smodelo = adato.getJSONObject(0).getString("modelo");
+                                    String snumero_v = adato.getJSONObject(0).getString("numero_movil");
+                                    String sestado = adato.getJSONObject(0).getString("estado");
+                                    String sid_pedido = adato.getJSONObject(0).getString("id_pedido");
+                                    String sid_empresa = adato.getJSONObject(0).getString("id_empresa");
+                                    String sempresa = adato.getJSONObject(0).getString("empresa");
+                                    String sclase_vehiculo = adato.getJSONObject(0).getString("clase_vehiculo");
+                                    String scantidad_pedidos = adato.getJSONObject(0).getString("cantidad_pedidos");
+                                    String snombre = adato.getJSONObject(0).getString("nombre_taxi");
+                                    try {
+                                        clase_vehiculo=Integer.parseInt(sclase_vehiculo);
+                                    } catch (Exception e)
+                                    {
+
+                                    }
+
+
+
+                                    String scalificacion_conductor=adato.getJSONObject(0).getString("calificacion_conductor");
+                                    String scalificacion_vehiculo=adato.getJSONObject(0).getString("calificacion_vehiculo");
+
+                                    SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
+                                    SharedPreferences.Editor editar=pedido.edit();
+                                    editar.putString("nombre_taxi",snombre);
+                                    editar.putString("celular",scelular);
+                                    editar.putString("id_taxi",sid_taxi);
+                                    editar.putString("marca",smarca);
+                                    editar.putString("placa",splaca);
+                                    editar.putString("color",scolor);
+                                    editar.putString("direccion_imagen_adelante",sdireccion_imagen_adelante);
+                                    editar.putString("modelo",smodelo);
+                                    editar.putString("numero_movil",snumero_v);
+                                    editar.putString("estado",sestado);
+                                    editar.putString("latitud",adato.getJSONObject(0).getString("latitud"));
+                                    editar.putString("longitud",adato.getJSONObject(0).getString("longitud"));
+                                    editar.putString("id_pedido",sid_pedido);
+                                    editar.putString("id_empresa",sid_empresa);
+                                    editar.putString("empresa",sempresa);
+                                    editar.putString("calificacion_conductor", scalificacion_conductor);
+                                    editar.putString("calificacion_vehiculo", scalificacion_vehiculo);
+                                    editar.putString("clase_vehiculo",sclase_vehiculo);
+                                    editar.putString("cantidad_pedidos",scantidad_pedidos);
+
+                                    editar.commit();
+
+                                    //===========
+                                    //devuelve  8
+                                    //===========
+
+                                    SharedPreferences spedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
+                                    tv_nombre.setText(spedido.getString("nombre_taxi",""));
+                                    tv_marca.setText(spedido.getString("marca",""));
+                                    tv_placa.setText(spedido.getString("placa",""));
+                                    //tv_modelo.setText(spedido.getString("modelo",""));
+                                    tv_color.setText(spedido.getString("color",""));
+                                    tv_numero_movil.setText("Movil Nº:"+spedido.getString("numero_movil","")+".");
+                                    //tv_cantidad_pedidos.setText("("+spedido.getString("cantidad_pedidos","0")+")");
+                                    getImage(spedido.getString("id_taxi",""));
+                                    //getImageVehiculo(spedido.getString("direccion_imagen_adelante",""));
+
+                                    try{
+                                        float conductor= Float.parseFloat(pedido.getString("calificacion_conductor","0"));
+                                        float vehiculo= Float.parseFloat(pedido.getString("calificacion_vehiculo","0"));
+                                       // rb_calificacion_conductor.setText(""+conductor);
+                                       // rb_calificacion_vehiculo.setRating(vehiculo);
+                                        rb_calificacion_conductor.setRating(conductor);
+                                        rb_calificacion_vehiculo.setRating(vehiculo);
+                                    }catch (Exception e)
+                                    {
+                                    }
+                                    if (clase_vehiculo==5)
+                                    {
+                                       // bt_delivery.setVisibility(View.VISIBLE);
+                                        bt_cancelar.setVisibility(View.INVISIBLE);
+                                    }else
+                                    {
+                                      //  bt_delivery.setVisibility(View.INVISIBLE);
+                                        bt_cancelar.setVisibility(View.VISIBLE);
+                                    }
+
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+
+                                }
+                                else
+                                {
+                                    mensaje_error_final("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error_final("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mensaje_error_final("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+            queue.add(myRequest);
+
+
+        } catch (Exception e) {
+        }
+    }
+    public void servicio_notificacion_volley(String id_pedido,String id_usuario, String detalle){
+        try {
+
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("token", token);
+            jsonParam.put("id_pedido", id_pedido);
+            jsonParam.put("id_usuario", id_usuario);
+            jsonParam.put("detalle", detalle);
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=enviar_notificacion_usuario";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+                            try {
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    mensaje(suceso.getMensaje());
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+                                    mensaje(suceso.getMensaje());
+                                }
+                                else
+                                {
+                                    mensaje_error_final("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje_error_final("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mensaje_error_final("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+            queue.add(myRequest);
+
+
+        } catch (Exception e) {
+        }
+    }
+    private void servicio_pedir_taxi(String id,
+                                     String latitud,
+                                     String longitud,
+                                     String nombre,
+                                     String referencia,
+                                     String numero_casa,
+                                     String imei,
+                                     String clase_vehiculo,
+                                     String tipo_pedido_empresa,
+                                     String direccion,
+                                     String latitud_final,
+                                     String longitud_final,
+                                     String estado_billetera) {
+
+        try {
+
+
+
+            String token= SharedPrefManager.getInstance(this).getDeviceToken();
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_usuario", id);
+            jsonParam.put("latitud", latitud);
+            jsonParam.put("longitud", longitud);
+            jsonParam.put("nombre", nombre);
+            jsonParam.put("indicacion", referencia);
+            jsonParam.put("numero_casa", numero_casa);
+            jsonParam.put("imei", imei);
+            jsonParam.put("clase_vehiculo", clase_vehiculo);
+            jsonParam.put("tipo_pedido_empresa", tipo_pedido_empresa);
+            jsonParam.put("direccion", direccion);
+            jsonParam.put("latitud_final", latitud_final);
+            jsonParam.put("longitud_final", longitud_final);
+            jsonParam.put("estado_billetera", estado_billetera);
+            jsonParam.put("direccion_final", direccion_final);
+            jsonParam.put("token", token);
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=pedir_taxi";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+
+
+                            try {
+
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = pedido.edit();
+                                    editor.putString("id_pedido", respuestaJSON.getString("id_pedido"));
+                                    editor.commit();
+
+                                    //-----------final-----------
+                                    tv_mensaje_pedido.setText("Esperando la confirmación por el Taxista ...");
+                                    SharedPreferences prefe = getSharedPreferences("pedido_en_proceso", Context.MODE_PRIVATE);
+
+                                    try {
+                                        int id_pedido =0;
+                                        try{
+                                            id_pedido = Integer.parseInt(prefe.getString("id_pedido", "0"));
+                                        }catch (Exception e)
+                                        {
+                                            id_pedido=0;
+                                        }
+                                        if(id_pedido!=0) {
+                                            Intent msgIntent = new Intent(Pedido_usuario.this, Servicio_pedir_movil.class);
+                                            msgIntent.putExtra("id_pedido", id_pedido);
+                                            startService(msgIntent);
+                                        }
+                                    } catch (Exception e) {
+                                    }
+
+
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+                                    mensaje_error_final(suceso.getMensaje());
+
+                                }
+                                else
+                                {
+                                    mensaje_error("Error: Al conectar con el Servidor.\nVerifique su acceso a Internet.");
+                                }
+                            } catch (JSONException e) {
+
+
+                                e.printStackTrace();
+                                mensaje_error("Falla en tu conexión a Internet.");
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                    mensaje_error("Falla en tu conexión a Internet.");
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+            queue.add(myRequest);
+
+
+        } catch (Exception e) {
+
+        }
+    }
+
 
 
     private void eliminar_pedido() {
