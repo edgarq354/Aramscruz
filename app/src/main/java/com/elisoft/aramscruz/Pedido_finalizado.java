@@ -16,6 +16,13 @@ import android.widget.Button;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.SqLite.AdminSQLiteOpenHelper;
 
 import org.json.JSONArray;
@@ -32,6 +39,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Pedido_finalizado extends AppCompatActivity implements View.OnClickListener{
 
@@ -118,179 +127,143 @@ public class Pedido_finalizado extends AppCompatActivity implements View.OnClick
         {
             String puntuacion_conductor= String.valueOf(rb_conductor.getRating());
             String puntuacion_vehiculo= String.valueOf(rb_vehiculo.getRating());
-            Servicio hilo = new Servicio();
-            hilo.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cargar_puntuacion", "1", String.valueOf(id_pedido),puntuacion_conductor,puntuacion_vehiculo);
+            servicio_calificar_pedido(String.valueOf(id_pedido),puntuacion_conductor,puntuacion_vehiculo,"");
         }
     }
-    // comenzar el servicio para la conexion con la base de datos.....
-    public class Servicio extends AsyncTask<String,Integer,String> {
 
 
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-// busca taxi dentro de su rango
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_pedido", params[2]);
-                    jsonParam.put("punto_conductor", params[3]);
-                    jsonParam.put("punto_vehiculo", params[4]);
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        SystemClock.sleep(950);
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="1";
-
-                            JSONArray usu=respuestaJSON.getJSONArray("historial");
-                            for (int i=0;i<usu.length();i++)
-                            {
-                                int id_pedido= Integer.parseInt(usu.getJSONObject(i).getString("id"));
-                                int id_taxi= Integer.parseInt(usu.getJSONObject(i).getString("id_conductor"));
-                                int estado_pedido= Integer.parseInt(usu.getJSONObject(i).getString("estado"));
-                                String indicacion=usu.getJSONObject(i).getString("direccion");
-                                String fecha_pedido=usu.getJSONObject(i).getString("fecha_pedido");
-                                double latitud= Double.parseDouble(usu.getJSONObject(i).getString("longitud"));
-                                double longitud= Double.parseDouble(usu.getJSONObject(i).getString("longitud"));
-                                String nombre=usu.getJSONObject(i).getString("nombre");
-                                String apellido=usu.getJSONObject(i).getString("apellido");
-                                String celular=usu.getJSONObject(i).getString("celular");
-                                String marca=usu.getJSONObject(i).getString("marca");
-                                String placa=usu.getJSONObject(i).getString("placa");
-                                String descripcion=usu.getJSONObject(i).getString("detalle");
-                                String monto_total=usu.getJSONObject(i).getString("monto_total");
+    //servicio de cancelar de pedido
+    private void servicio_calificar_pedido(String id_pedido,String punto_conductor,String punto_vehiculo,String descripcion) {
 
 
-                                cargar_lista_en_historial( id_pedido,
-                                        id_taxi,
-                                        estado_pedido,
-                                        fecha_pedido,
-                                        nombre,
-                                        apellido,
-                                        celular,
-                                        marca,
-                                        placa,
-                                        indicacion,
-                                        descripcion,
-                                        latitud,
-                                        longitud,
-                                        monto_total);
+        try {
+
+            pDialog = new ProgressDialog(Pedido_finalizado.this);
+            pDialog.setTitle(getString(R.string.app_name));
+            pDialog.setMessage("Subiendo la calificación");
+            pDialog.setIndeterminate(false);
+            pDialog.setCancelable(false);
+            pDialog.show();
+
+
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("id_pedido", id_pedido);
+            jsonParam.put("punto_conductor", punto_conductor);
+            jsonParam.put("punto_vehiculo", punto_vehiculo);
+            jsonParam.put("descripcion", descripcion);
+
+
+
+            String url=getString(R.string.servidor) + "frmPedido.php?opcion=cargar_puntuacion";
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+
+
+                            try {
+                                pDialog.dismiss();
+
+                                suceso= new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+
+                                    JSONArray usu=respuestaJSON.getJSONArray("historial");
+                                    for (int i=0;i<usu.length();i++)
+                                    {
+                                        int id_pedido= Integer.parseInt(usu.getJSONObject(i).getString("id"));
+                                        int id_taxi= Integer.parseInt(usu.getJSONObject(i).getString("id_conductor"));
+                                        int estado_pedido= Integer.parseInt(usu.getJSONObject(i).getString("estado"));
+                                        String indicacion=usu.getJSONObject(i).getString("direccion");
+                                        String fecha_pedido=usu.getJSONObject(i).getString("fecha_pedido");
+                                        double latitud= Double.parseDouble(usu.getJSONObject(i).getString("longitud"));
+                                        double longitud= Double.parseDouble(usu.getJSONObject(i).getString("longitud"));
+                                        String nombre=usu.getJSONObject(i).getString("nombre");
+                                        String apellido=usu.getJSONObject(i).getString("apellido");
+                                        String celular=usu.getJSONObject(i).getString("celular");
+                                        String marca=usu.getJSONObject(i).getString("marca");
+                                        String placa=usu.getJSONObject(i).getString("placa");
+                                        String descripcion=usu.getJSONObject(i).getString("detalle");
+                                        String monto_total=usu.getJSONObject(i).getString("monto_total");
+
+
+                                        cargar_lista_en_historial( id_pedido,
+                                                id_taxi,
+                                                estado_pedido,
+                                                fecha_pedido,
+                                                nombre,
+                                                apellido,
+                                                celular,
+                                                marca,
+                                                placa,
+                                                indicacion,
+                                                descripcion,
+                                                latitud,
+                                                longitud,
+                                                monto_total);
+                                    }
+                                    //-------------- final --------
+                                    startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
+                                    finish();
+
+                                }else if(suceso.getSuceso().equals("2"))
+                                {
+
+                                    startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
+                                    finish();
+                                }
+                                else
+                                {
+                                    startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
+                                    finish();
+                                }
+                            } catch (JSONException e) {
+                                pDialog.dismiss();
+
+                                e.printStackTrace();
+                                startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
+                                finish();
                             }
 
-                            devuelve="1";
-                        } else  {
-                            devuelve = "2";
                         }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.dismiss();
+                    startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
+                    finish();
                 }
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
 
 
+            queue.add(myRequest);
 
 
+        } catch (Exception e) {
 
-
-            return devuelve;
-        }
-
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            try {
-                pDialog = new ProgressDialog(Pedido_finalizado.this);
-                pDialog.setTitle(getString(R.string.app_name));
-                pDialog.setMessage("Subiendo la calificación");
-                pDialog.setIndeterminate(false);
-                pDialog.setCancelable(false);
-                pDialog.show();
-            }catch (Exception e)
-            {
-
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            try {
-                pDialog.dismiss();//ocultamos proggress dialog
-            }catch (Exception e)
-            {
-
-            }
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
-                finish();
-            }
-
-            else
-            {
-                finish();
-            }
-
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
         }
 
     }
+
+
+
 
     private void cargar_lista_en_historial( int id,
                                             int id_taxi,
