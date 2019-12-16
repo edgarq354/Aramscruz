@@ -150,7 +150,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
        LinearLayout ll_flotante,ll_cancelar;
     TextView tv_mensaje_pedido,tv_nombre,tv_placa,tv_marca,tv_color,tv_titulo,tv_numero_movil;
-    ImageView im_rodar_pedido,im_perfil,im_cerrar;
+
+    ImageView im_perfil,im_cerrar;
     Button bt_cancelar_pedido,bt_ver_perfil;
     ImageButton bt_contacto_conductor,bt_contactar_empresa;
     RatingBar rb_calificacion_conductor,rb_calificacion_vehiculo;
@@ -263,7 +264,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         ll_flotante=(LinearLayout)findViewById(R.id.ll_flotante);
         ll_cancelar=(LinearLayout)findViewById(R.id.ll_cancelar);
         tv_mensaje_pedido=(TextView)findViewById(R.id.tv_mensaje_pedido);
-        im_rodar_pedido=(ImageView)findViewById(R.id.im_rodar_pedido);
+
         bt_cancelar_pedido=(Button)findViewById(R.id.bt_cancelar_pedido);
         bt_ver_perfil=(Button)findViewById(R.id.bt_ver_perfil);
         tv_nombre=(TextView)findViewById(R.id.tv_nombre);
@@ -403,14 +404,13 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
 
     private void flotante_pedir(boolean b) {
-        Animation giro= AnimationUtils.loadAnimation(this,R.anim.rotar);
+
         if(b==true)
         {
             sw_cancelar_pedido=false;
             ll_flotante.setVisibility(View.VISIBLE);
 
-            giro.reset();
-            im_rodar_pedido.startAnimation(giro);
+
             ll_perfil.setVisibility(View.INVISIBLE);
             bt_cancelar.setEnabled(false);
             bt_ver_perfil.setVisibility(View.INVISIBLE);

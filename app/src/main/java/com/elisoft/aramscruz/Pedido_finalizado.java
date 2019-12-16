@@ -215,7 +215,6 @@ public class Pedido_finalizado extends AppCompatActivity implements View.OnClick
 
                                 }else if(suceso.getSuceso().equals("2"))
                                 {
-
                                     startActivity(new Intent(getApplicationContext(),Menu_usuario.class));
                                     finish();
                                 }

@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".Menu_usuario"
-    android:background="#d5000000"
+    android:background="@drawable/fondo_radar"
     tools:showIn="@layout/activity_pedido_usuario_2">
 
 
@@ -22,11 +22,14 @@
         android:layout_marginTop="25sp"
         android:id="@+id/tv_mensaje_pedido"
         />
-    <ImageView
+
+    <com.airbnb.lottie.LottieAnimationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/radar2"
-        android:id="@+id/im_rodar_pedido"
+        app:lottie_imageAssetsFolder="assets"
+        app:lottie_fileName="radar.json"
+        app:lottie_loop="true"
+        app:lottie_autoPlay="true"
         android:layout_gravity="center"
         />
     <Button

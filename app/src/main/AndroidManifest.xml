@@ -105,10 +105,7 @@
             android:name=".Registrar_usuario_facebook"
             android:label="@string/title_activity_registrar_usuario_facebook"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".actualizacion"
-            android:label="Actualización"
-            android:screenOrientation="portrait" />
+
         <activity
             android:name=".registro_inicio_sesion.Animacion"
             android:screenOrientation="portrait">
@@ -150,10 +147,7 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".Pedido_finalizado" />
-        <activity
-            android:name=".historial.Historial"
-            android:label="@string/title_activity_historial"
-            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".Notificacion_pedido_cancelo"
             android:label="@string/title_activity_notificacion_pedido_cancelo" />
@@ -163,22 +157,7 @@
             android:name=".carreras.Carreras"
             android:label="Carreras"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".Scanear.QR_conductor"
-            android:label="Scanear QR al Conductor"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".Scanear.QR_vehiculo"
-            android:label="Scanear QR al Vehículo"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".Scanear.Qr_verificar_conductor"
-            android:label="Scanear QR al Conductor"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".Scanear.QR_verificar_vehiculo"
-            android:label="Scanear QR al Vehículo"
-            android:screenOrientation="portrait" />
+
         <activity
             android:name=".registro_inicio_sesion.Autenticar_celular"
             android:label="Verifica tu número"
@@ -201,45 +180,13 @@
             android:name=".compartir.Compartir_desde_pedido"
             android:label="@string/title_activity_compartir_desde_pedido"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".panico.Panico_principal"
-            android:label="Compartir Panico"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".panico.Buscar_usuario_panico"
-            android:label="Buscar Usuario"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".recorrido_compartido.Main_lista_usuarios_compartidos"
-            android:label="Compartir Recorridos"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".recorrido_compartido.Carreras_recorrido_usuario"
-            android:label="Carreras con recorrido compartido"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".recorrido_compartido.Ver_carrera_compartida"
-            android:label="Recorrido Compartido"
-            android:theme="@style/AppTheme.NoActionBar" />
+
+
         <activity
             android:name=".tarjeta_credito.Registrar_tarjeta"
             android:label="@string/title_activity_registrar_tarjeta"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".panico.Notificacion_panico"
-            android:label="Contactos con panico"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".video_tutorial.Menu_video"
-            android:label="Video Tutorial"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".video_tutorial.Ver_video"
-            android:label="Ver Video" />
-        <activity
-            android:name=".panico.Datos_contacto_panico"
-            android:label="@string/title_activity_datos_contacto_panico"
-            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".Condiciones_terminos"
             android:label="Condiciones y Terminos de uso" />
@@ -254,14 +201,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
-        <activity
-            android:name=".recorrido_compartido.Perfil_pasajero_compartido"
-            android:label="@string/title_activity_perfil_pasajero_compartido"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".recorrido_compartido.Perfil_conductor_compartido"
-            android:label="@string/title_activity_perfil_conductor_compartido"
-            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".corporativo.Empresa"
             android:label="@string/title_activity_empresa"

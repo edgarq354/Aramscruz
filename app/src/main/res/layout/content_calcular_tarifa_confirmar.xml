@@ -382,13 +382,17 @@
                         android:orientation="vertical"
                         android:paddingRight="10sp"
                         android:paddingLeft="20sp"
+                        android:gravity="center"
+                        android:layout_gravity="center"
                         >
 
 
                         <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_movil_normal"
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:src="@drawable/ic_movil_normal"
                             android:id="@+id/im_movil_normal"
                             />
 
@@ -414,11 +418,9 @@
 
                     <LinearLayout
                         android:id="@+id/pedir_movil_aire_seleccion"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_width="0sp"
+                        android:layout_height="0sp"
                         android:orientation="vertical"
-                        android:paddingRight="10sp"
-                        android:paddingLeft="10sp"
                         >
 
 
@@ -458,13 +460,15 @@
                         android:orientation="vertical"
                         android:paddingRight="10sp"
                         android:paddingLeft="10sp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
                         >
 
 
                         <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_movil_lujo_gris"
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_lujo_gris"
                             android:id="@+id/im_movil_lujo"
                             />
 
@@ -491,15 +495,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:gravity="center"
                         android:paddingRight="10sp"
                         android:paddingLeft="10sp"
                         >
 
 
                         <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_movil_maletero_gris"
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_maletero_gris"
                             android:id="@+id/im_movil_maletero"
                             />
 
@@ -565,16 +570,17 @@
                         android:id="@+id/pedir_moto_seleccion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingRight="20sp"
+                        android:paddingRight="10sp"
                         android:paddingLeft="10sp"
                         >
 
 
                         <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_moto_gris"
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_moto_gris"
                             android:id="@+id/im_moto"
                             />
 
@@ -593,6 +599,167 @@
                             android:textColor="@color/colorIcons"
                             android:id="@+id/tv_tarifa_moto"
                             />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:id="@+id/pedir_movil_camioncito_seleccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingRight="10sp"
+                        android:paddingLeft="10sp"
+                        >
+
+
+                        <ImageView
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_camioncito_gris"
+                            android:id="@+id/im_movil_camioncito"
+                            />
+
+
+
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="CON AIRE" />
+
+                        <TextView
+                            android:id="@+id/tv_tarifa_camioncito"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="0 Bs"
+                            android:textColor="@color/colorIcons" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/pedir_movil_compras_seleccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingRight="10sp"
+                        android:paddingLeft="10sp"
+                        >
+
+
+                        <ImageView
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_compras_gris"
+                            android:id="@+id/im_movil_compras"
+                            />
+
+
+
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="CON AIRE" />
+
+                        <TextView
+                            android:id="@+id/tv_tarifa_compras"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="0 Bs"
+                            android:textColor="@color/colorIcons" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/pedir_movil_empresa_seleccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingRight="10sp"
+                        android:paddingLeft="10sp"
+                        >
+
+
+                        <ImageView
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_empresa_gris"
+                            android:id="@+id/im_movil_empresa"
+                            />
+
+
+
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="CON AIRE" />
+
+                        <TextView
+                            android:id="@+id/tv_tarifa_empresa"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="0 Bs"
+                            android:textColor="@color/colorIcons" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/pedir_movil_grua_torito_seleccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingRight="20sp"
+                        android:paddingLeft="10sp"
+                        >
+
+
+                        <ImageView
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_grua_torito_gris"
+                            android:id="@+id/im_movil_grua_torito"
+                            />
+
+
+
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="CON AIRE" />
+
+                        <TextView
+                            android:id="@+id/tv_tarifa_grua_torito"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="0 Bs"
+                            android:textColor="@color/colorIcons" />
+
                     </LinearLayout>
 
 
