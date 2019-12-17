@@ -95,7 +95,7 @@
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@mipmap/ic_movil_normal"/>
+                        android:src="@drawable/ic_movil_normal"/>
                     <TextView
                         android:id="@+id/textView3"
                         android:layout_width="wrap_content"
@@ -129,7 +129,7 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:src="@mipmap/ic_movil_lujo"/>
+                        android:src="@drawable/ic_movil_lujo"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -152,7 +152,7 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:src="@mipmap/ic_movil_aire"/>
+                        android:src="@drawable/ic_movil_normal"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -175,7 +175,7 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:src="@mipmap/ic_movil_maletero"/>
+                        android:src="@drawable/ic_movil_maletero"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -245,7 +245,7 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:src="@mipmap/ic_moto"/>
+                        android:src="@drawable/ic_moto"/>
                 </LinearLayout>
 
             </LinearLayout>

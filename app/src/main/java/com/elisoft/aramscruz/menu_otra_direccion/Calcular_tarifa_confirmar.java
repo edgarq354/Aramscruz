@@ -113,14 +113,22 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             pedir_movil_lujo_seleccion,
             pedir_movil_maletero_seleccion,
             pedir_movil_aire_seleccion,
-            pedir_moto_seleccion;
+            pedir_moto_seleccion,
+            pedir_movil_camioncito_seleccion,
+            pedir_movil_compras_seleccion,
+            pedir_movil_empresa_seleccion,
+            pedir_movil_grua_torito_seleccion;
 
     ImageView
             im_movil_normal,
             im_movil_lujo,
             im_movil_maletero,
             im_movil_aire,
-            im_moto;
+            im_moto,
+            im_movil_camioncito,
+            im_movil_compras,
+            im_movil_empresa,
+            im_movil_grua_torito;
 
 
     boolean sw_ver_taxi_cerca = false;
@@ -182,12 +190,20 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_movil_lujo_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_lujo_seleccion);
         pedir_movil_maletero_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_maletero_seleccion);
         pedir_moto_seleccion = (LinearLayout)findViewById(R.id.pedir_moto_seleccion);
+        pedir_movil_camioncito_seleccion= findViewById(R.id.pedir_movil_camioncito_seleccion);
+        pedir_movil_compras_seleccion=findViewById(R.id.pedir_movil_compras_seleccion);
+        pedir_movil_empresa_seleccion=findViewById(R.id.pedir_movil_empresa_seleccion);
+        pedir_movil_grua_torito_seleccion=findViewById(R.id.pedir_movil_grua_torito_seleccion);
 
         im_movil_normal = (ImageView) findViewById(R.id.im_movil_normal);
         im_movil_aire = (ImageView) findViewById(R.id.im_movil_aire);
         im_movil_lujo = (ImageView) findViewById(R.id.im_movil_lujo);
         im_movil_maletero = (ImageView) findViewById(R.id.im_movil_maletero);
         im_moto = (ImageView)findViewById(R.id.im_moto);
+        im_movil_camioncito=findViewById(R.id.im_movil_camioncito);
+        im_movil_compras=findViewById(R.id.im_movil_compras);
+        im_movil_empresa=findViewById(R.id.im_movil_empresa);
+        im_movil_grua_torito=findViewById(R.id.im_movil_grua_torito);
 //fin seleccion
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -241,6 +257,10 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_movil_lujo_seleccion.setOnClickListener(this);
         pedir_movil_maletero_seleccion.setOnClickListener(this);
         pedir_moto_seleccion.setOnClickListener(this);
+        pedir_movil_camioncito_seleccion.setOnClickListener(this);
+        pedir_movil_compras_seleccion.setOnClickListener(this);
+        pedir_movil_empresa_seleccion.setOnClickListener(this);
+        pedir_movil_grua_torito_seleccion.setOnClickListener(this);
 
 
                 hilo_m = new Servicio_ver_movil();
@@ -649,6 +669,23 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             case R.id.pedir_moto_seleccion:
                 seleccionar_movil(7);
                 break;
+
+            case R.id.pedir_movil_camioncito_seleccion:
+                //CAMIONCITO --CAMIONETA
+                seleccionar_movil(15);
+                break;
+            case R.id.pedir_movil_compras_seleccion:
+                //COMPRAS
+                seleccionar_movil(16);
+                break;
+            case R.id.pedir_movil_empresa_seleccion:
+                //EMPRESA
+                seleccionar_movil(17);
+                break;
+            case R.id.pedir_movil_grua_torito_seleccion:
+                //GRUA TORITO
+                seleccionar_movil(18);
+                break;
             case  R.id.ll_solicitar_ahora:
 
                 solicitar_ahora();
@@ -801,26 +838,49 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     private void seleccionar_movil(int i) {
         clase_vehiculo=i;
 
-        im_movil_normal.setImageResource(R.mipmap.ic_movil_normal_gris);
-        im_movil_aire.setImageResource(R.mipmap.ic_movil_aire_gris);
-        im_movil_lujo.setImageResource(R.mipmap.ic_movil_lujo_gris);
-        im_movil_maletero.setImageResource(R.mipmap.ic_movil_maletero_gris);
-        im_moto.setImageResource(R.mipmap.ic_moto_gris);
+        im_movil_normal.setImageResource(R.drawable.ic_movil_normal_gris);
+      //im_movil_aire.setImageResource(R.mipmap.ic_movil_aire_gris);
+        im_movil_lujo.setImageResource(R.drawable.ic_movil_lujo_gris);
+        im_movil_maletero.setImageResource(R.drawable.ic_movil_maletero_gris);
+        im_moto.setImageResource(R.drawable.ic_moto_gris);
+
+        im_movil_camioncito.setImageResource(R.drawable.ic_movil_camioncito_gris);
+        im_movil_compras.setImageResource(R.drawable.ic_movil_compras_gris);
+        im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa_gris);
+        im_movil_grua_torito.setImageResource(R.drawable.ic_movil_grua_torito_gris);
+
         switch (i){
             case 1:
-                im_movil_normal.setImageResource(R.mipmap.ic_movil_normal);
+                im_movil_normal.setImageResource(R.drawable.ic_movil_normal);
             break;
             case 2:
-                im_movil_lujo.setImageResource(R.mipmap.ic_movil_lujo);
+                im_movil_lujo.setImageResource(R.drawable.ic_movil_lujo);
                 break;
             case 3:
-                im_movil_aire.setImageResource(R.mipmap.ic_movil_aire);
+                //MOVIL CON AIRE
+               // im_movil_aire.setImageResource(R.mipmap.ic_movil_aire);
                 break;
             case 4:
-                im_movil_maletero.setImageResource(R.mipmap.ic_movil_maletero);
+                im_movil_maletero.setImageResource(R.drawable.ic_movil_maletero);
                 break;
             case 7:
-                im_moto.setImageResource(R.mipmap.ic_moto);
+                im_moto.setImageResource(R.drawable.ic_moto);
+                break;
+            case 15:
+                //CAMIONCITO
+                im_movil_camioncito.setImageResource(R.drawable.ic_movil_camioncito);
+                break;
+            case 16:
+                //COMPRAS
+                im_movil_compras.setImageResource(R.drawable.ic_movil_compras);
+                break;
+            case 17:
+                //EMPRESA
+                im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa);
+                break;
+            case 18:
+                //GRUA TORITO
+                im_movil_grua_torito.setImageResource(R.drawable.ic_movil_grua_torito);
                 break;
         }
     }

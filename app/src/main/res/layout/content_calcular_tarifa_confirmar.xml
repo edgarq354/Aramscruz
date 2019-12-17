@@ -172,8 +172,8 @@
             <TextView
                 android:layout_marginRight="15sp"
                 android:layout_marginLeft="15sp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="0sp"
+                android:layout_height="0sp"
                 android:text="Esta tarifa se basa en nuestra estimación. Esto puede variar durante el viaje y la tarifa final."
                 />
 
@@ -212,7 +212,7 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_movil_lujo"/>
+                            android:src="@drawable/ic_movil_lujo"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -240,7 +240,7 @@
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:src="@mipmap/ic_movil_aire"/>
+                                android:src="@drawable/ic_movil_normal"/>
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -280,10 +280,10 @@
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_movil_maletero"/>
+                            android:src="@drawable/ic_movil_maletero"/>
                             <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
+                                android:layout_width="80sp"
+                                android:layout_height="80sp"
                                 android:layout_weight="1"
                                 android:gravity="center"
                                 android:text="MALETERO"
@@ -355,7 +355,7 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:src="@mipmap/ic_moto"/>
+                            android:src="@drawable/ic_moto"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -427,7 +427,7 @@
                             <ImageView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:src="@mipmap/ic_movil_aire_gris"
+                                android:src="@drawable/ic_movil_normal_gris"
                                 android:id="@+id/im_movil_aire"
                                 />
 
@@ -629,7 +629,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="CON AIRE" />
+                            android:text="CAMIONCITO" />
 
                         <TextView
                             android:id="@+id/tv_tarifa_camioncito"
@@ -669,7 +669,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="CON AIRE" />
+                            android:text="COMPRAS" />
 
                         <TextView
                             android:id="@+id/tv_tarifa_compras"
@@ -709,7 +709,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="CON AIRE" />
+                            android:text="EMPRESA" />
 
                         <TextView
                             android:id="@+id/tv_tarifa_empresa"
@@ -749,7 +749,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="CON AIRE" />
+                            android:text="GRUA-TORITO" />
 
                         <TextView
                             android:id="@+id/tv_tarifa_grua_torito"
