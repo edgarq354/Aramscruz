@@ -53,7 +53,7 @@ public class MyNotificationManager {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder = new NotificationCompat.Builder(mCtx);
-        mBuilder.setSmallIcon(R.mipmap.ic_movil_normal);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
@@ -170,7 +170,7 @@ public class MyNotificationManager {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder = new NotificationCompat.Builder(mCtx);
-        mBuilder.setSmallIcon(R.mipmap.ic_movil_normal);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
@@ -214,7 +214,7 @@ public class MyNotificationManager {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder = new NotificationCompat.Builder(mCtx);
-        mBuilder.setSmallIcon(R.mipmap.ic_movil_normal);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
@@ -258,7 +258,7 @@ public class MyNotificationManager {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder = new NotificationCompat.Builder(mCtx);
-        mBuilder.setSmallIcon(R.mipmap.ic_movil_normal);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
@@ -301,7 +301,7 @@ public class MyNotificationManager {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder = new NotificationCompat.Builder(mCtx);
-        mBuilder.setSmallIcon(R.mipmap.ic_movil_normal);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
@@ -344,7 +344,7 @@ public class MyNotificationManager {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder = new NotificationCompat.Builder(mCtx);
-        mBuilder.setSmallIcon(R.mipmap.ic_movil_normal);
+        mBuilder.setSmallIcon(R.drawable.ic_logo_app);
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
