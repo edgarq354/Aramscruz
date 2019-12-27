@@ -387,7 +387,7 @@ public class Confirmar_sms extends AppCompatActivity implements View.OnClickList
     }
 
     //servicio de verificar si ya esta registrado el cellular.
-    public void servicio_iniciar_sesion_con_celular(String celular,
+    public void servicio_iniciar_sesion_con_celular(final String celular,
                                                     String token,
                                                     String imei,
                                                     String codigo)
@@ -436,6 +436,11 @@ public class Confirmar_sms extends AppCompatActivity implements View.OnClickList
                                     //final
                                     iniciar_sesion();
 
+                                }else if(suceso.getSuceso().equals("3")) {
+                                    Intent registrar=new Intent(getApplicationContext(),Registrar_nombre_completo.class);
+                                    registrar.putExtra("celular",celular);
+                                    startActivity(registrar);
+                                    finish();
                                 } else  {
                                     mensaje_error(suceso.getMensaje());
                                 }

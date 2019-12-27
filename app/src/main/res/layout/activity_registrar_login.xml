@@ -16,27 +16,27 @@
         android:id="@+id/registrate"
         android:layout_gravity="bottom"
         style="@style/submit2"/>
-<TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center"
-    android:textSize="20sp"
-    android:layout_margin="5sp"
-    android:layout_gravity="top"
-    android:text="Ingrese su correo electronico y su nueva contraseña para registrarte en Taxi Elitex"
-    android:textColor="@color/colorPrimary"
-    />
+
     <LinearLayout
         android:id="@+id/area_telefono"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/area_nombre"
-        android:layout_gravity="center_vertical"
         android:orientation="vertical"
         android:paddingBottom="@dimen/activity_vertical_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         >
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:layout_margin="5sp"
+        android:layout_gravity="top"
+        android:text="Ingrese su correo electronico y su nueva contraseña para registrarte en Taxi Elitex"
+        android:textColor="@color/colorPrimary"
+        />
 
         <android.support.design.widget.TextInputLayout
 
