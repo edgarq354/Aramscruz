@@ -17,7 +17,6 @@ import android.widget.ProgressBar;
 import com.elisoft.aramscruz.Constants;
 import com.elisoft.aramscruz.Menu_usuario;
 import com.elisoft.aramscruz.R;
-import com.elisoft.aramscruz.Servicio_guardar_contacto_empresa;
 
 public class Animacion extends AppCompatActivity implements View.OnClickListener{
     ProgressBar cargando;
@@ -40,9 +39,9 @@ public class Animacion extends AppCompatActivity implements View.OnClickListener
 
                 getSupportActionBar().hide();
                 progress_en_proceso();
-                Intent intent = new Intent(Animacion.this, Servicio_guardar_contacto_empresa.class);
-                intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                startService(intent);
+                //Intent intent = new Intent(Animacion.this, Servicio_guardar_contacto_empresa.class);
+                //intent.setAction(Constants.ACTION_RUN_ISERVICE);
+               // startService(intent);
             }
 
         }

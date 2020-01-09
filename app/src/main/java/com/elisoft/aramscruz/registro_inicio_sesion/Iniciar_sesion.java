@@ -37,7 +37,6 @@ import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.Constants;
 import com.elisoft.aramscruz.Menu_usuario;
 import com.elisoft.aramscruz.R;
-import com.elisoft.aramscruz.Servicio_guardar_contacto_empresa;
 import com.elisoft.aramscruz.Suceso;
 import com.elisoft.aramscruz.informacion.Pagina;
 import com.elisoft.aramscruz.notificaciones.SharedPrefManager;
@@ -298,9 +297,9 @@ public class Iniciar_sesion extends AppCompatActivity implements View.OnClickLis
                     finish();
                 }else{
                     //tiene todos los permisos...
-                    Intent intent = new Intent(Iniciar_sesion.this, Servicio_guardar_contacto_empresa.class);
-                    intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                    startService(intent);
+                //    Intent intent = new Intent(Iniciar_sesion.this, Servicio_guardar_contacto_empresa.class);
+                  //  intent.setAction(Constants.ACTION_RUN_ISERVICE);
+                  //  startService(intent);
                 }
                 return;
             }

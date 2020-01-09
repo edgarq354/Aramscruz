@@ -18,7 +18,6 @@ import android.view.WindowManager;
 import com.elisoft.aramscruz.Constants;
 import com.elisoft.aramscruz.Menu_usuario;
 import com.elisoft.aramscruz.R;
-import com.elisoft.aramscruz.Servicio_guardar_contacto_empresa;
 import com.elisoft.aramscruz.informacion.Pagina;
 
 public class Opcion_inicio_sesion extends AppCompatActivity {
@@ -97,9 +96,9 @@ public class Opcion_inicio_sesion extends AppCompatActivity {
                     finish();
                 }else{
                     //tiene todos los permisos...
-                    Intent intent = new Intent(this, Servicio_guardar_contacto_empresa.class);
-                    intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                    startService(intent);
+                  //  Intent intent = new Intent(this, Servicio_guardar_contacto_empresa.class);
+                  //  intent.setAction(Constants.ACTION_RUN_ISERVICE);
+                  //  startService(intent);
 
                 }
                 return;

@@ -38,7 +38,7 @@ import com.elisoft.aramscruz.Condiciones_terminos;
 import com.elisoft.aramscruz.Constants;
 import com.elisoft.aramscruz.Menu_usuario;
 import com.elisoft.aramscruz.R;
-import com.elisoft.aramscruz.Servicio_guardar_contacto_empresa;
+
 import com.elisoft.aramscruz.Suceso;
 import com.elisoft.aramscruz.notificaciones.SharedPrefManager;
 import com.facebook.AccessToken;
@@ -291,9 +291,9 @@ public class Crear_cuenta extends AppCompatActivity implements View.OnClickListe
                     finish();
                 }else{
                     //tiene todos los permisos...
-                    Intent intent = new Intent(Crear_cuenta.this, Servicio_guardar_contacto_empresa.class);
-                    intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                    startService(intent);
+                   // Intent intent = new Intent(Crear_cuenta.this, Servicio_guardar_contacto_empresa.class);
+                   // intent.setAction(Constants.ACTION_RUN_ISERVICE);
+                   // startService(intent);
                 }
                 return;
             }
