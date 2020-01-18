@@ -149,17 +149,17 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
     boolean sw_verificar_si_tiene_pedido=false,sw_cancelar_pedido=true,sw_cancelar_pedido_durante_el_pedido=false;
 
        LinearLayout ll_flotante,ll_cancelar;
-    TextView tv_mensaje_pedido,tv_nombre,tv_placa,tv_marca,tv_color,tv_titulo,tv_numero_movil;
+    TextView tv_mensaje_pedido,tv_nombre,tv_placa,tv_marca,tv_color ,tv_modelo,tv_numero_movil,tv_cantidad_pedidos;
 
-    ImageView im_perfil,im_cerrar;
-    Button bt_cancelar_pedido,bt_ver_perfil;
+    ImageView  im_perfil,im_vehiculo;
+    Button bt_cancelar_pedido;
     ImageButton bt_contacto_conductor,bt_contactar_empresa;
-    RatingBar rb_calificacion_conductor,rb_calificacion_vehiculo;
+
+    TextView rb_calificacion_conductor;
 
 
 
 
-    LinearLayout ll_perfil;
 
 
     boolean sw_destroy=false;
@@ -177,9 +177,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
     @Override
     public void onBackPressed() {
-        ll_perfil.setVisibility(View.INVISIBLE);
         bt_cancelar.setEnabled(true);
-        tv_titulo.setText("");
 
             SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
         SharedPreferences pedido_proceso = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
@@ -266,18 +264,14 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         tv_mensaje_pedido=(TextView)findViewById(R.id.tv_mensaje_pedido);
 
         bt_cancelar_pedido=(Button)findViewById(R.id.bt_cancelar_pedido);
-        bt_ver_perfil=(Button)findViewById(R.id.bt_ver_perfil);
         tv_nombre=(TextView)findViewById(R.id.tv_nombre);
         tv_marca=(TextView)findViewById(R.id.tv_marca);
         tv_placa=(TextView)findViewById(R.id.tv_placa);
         tv_color=(TextView)findViewById(R.id.tv_color);
         tv_numero_movil=(TextView)findViewById(R.id.tv_numero_movil);
         im_perfil=(ImageView) findViewById(R.id.im_perfil);
-        im_cerrar=(ImageView) findViewById(R.id.im_cerrar);
-        ll_perfil=(LinearLayout)findViewById(R.id.ll_perfil);
-        rb_calificacion_conductor=(RatingBar)findViewById(R.id.rb_conductor);
-        rb_calificacion_vehiculo=(RatingBar)findViewById(R.id.rb_vehiculo);
-        tv_titulo=(TextView)findViewById(R.id.tv_titulo);
+        im_vehiculo= findViewById(R.id.im_vehiculo);
+        rb_calificacion_conductor= findViewById(R.id.rb_conductor);
         bt_contacto_conductor=(ImageButton)findViewById(R.id.bt_contacto_conductor);
         bt_contactar_empresa=(ImageButton)findViewById(R.id.bt_contacto_empresa);
         ll_vehiculo=(LinearLayout)findViewById(R.id.ll_vehiculo);
@@ -286,7 +280,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         setSupportActionBar(toolbar);
         mIntentFilter = new IntentFilter();
 
-       tv_titulo.setText("");
+
 
 
         hilo_pedir_taxi = new Servicio_pedir_taxi();
@@ -345,8 +339,6 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         }
 
         bt_cancelar.setOnClickListener(this);
-        bt_ver_perfil.setOnClickListener(this);
-        im_cerrar.setOnClickListener(this);
         bt_cancelar_pedido.setOnClickListener(this);
         bt_contactar_empresa.setOnClickListener(this);
         bt_contacto_conductor.setOnClickListener(this);
@@ -411,9 +403,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             ll_flotante.setVisibility(View.VISIBLE);
 
 
-            ll_perfil.setVisibility(View.INVISIBLE);
             bt_cancelar.setEnabled(false);
-            bt_ver_perfil.setVisibility(View.INVISIBLE);
             getSupportActionBar().hide();
 
         }
@@ -421,11 +411,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         {
             sw_cancelar_pedido=true;
             this.ll_flotante.setVisibility(View.INVISIBLE);
-            ll_perfil.setVisibility(View.VISIBLE);
             bt_cancelar.setEnabled(false);
-            bt_ver_perfil.setVisibility(View.VISIBLE);
             getSupportActionBar().show();
-            tv_titulo.setText("Datos del conductor");
+
 
         }
 
@@ -583,18 +571,13 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         else if(v.getId()==R.id.bt_ver_perfil)
           {SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
               getImage(pedido.getString("id_taxi",""));
-            ll_perfil.setVisibility(View.VISIBLE);
-              bt_cancelar.setEnabled(false);
-              bt_ver_perfil.setVisibility(View.VISIBLE);
-              tv_titulo.setText("");
+              getImageVehiculo(pedido.getString("direccion_imagen_adelante",""));
+
+              llamar_al_conductor();
+
 
           }
-        else if(v.getId()==R.id.im_cerrar)
-      {
-        ll_perfil.setVisibility(View.INVISIBLE);
-          bt_cancelar.setEnabled(true);
-          tv_titulo.setText("");
-      }
+
       else if(v.getId()==R.id.bt_cancelar_pedido)
       {//cancela el pedido durante la busqueda de un pedido.
           sw_cancelar_pedido_durante_el_pedido=true;
@@ -1279,21 +1262,21 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                 tv_nombre.setText(pedido.getString("nombre_taxi",""));
                 tv_marca.setText(pedido.getString("marca",""));
                 tv_placa.setText(pedido.getString("placa",""));
+                tv_modelo.setText(pedido.getString("modelo",""));
                 tv_color.setText(pedido.getString("color",""));
                 tv_numero_movil.setText("Movil Nº:"+pedido.getString("numero_movil","")+" ");
-
+                tv_cantidad_pedidos.setText("("+pedido.getString("cantidad_pedidos","0")+")");
+/*
                 Intent servicio_contacto = new Intent(Pedido_usuario.this, Servicio_guardar_contacto.class);
                 servicio_contacto.setAction(Constants.ACTION_RUN_ISERVICE);
                 servicio_contacto.putExtra("nombre",pedido.getString("nombre_taxi", ""));
                 servicio_contacto.putExtra("telefono",pedido.getString("celular", ""));
                 startService(servicio_contacto);
-
-
+*/
                 try{
                     float conductor= Float.parseFloat(pedido.getString("calificacion_conductor","0"));
                     float vehiculo= Float.parseFloat(pedido.getString("calificacion_vehiculo","0"));
-                    rb_calificacion_conductor.setRating(conductor);
-                    rb_calificacion_vehiculo.setRating(vehiculo);
+                    rb_calificacion_conductor.setText(""+conductor);
                 }catch (Exception e)
                 {
 
@@ -1301,8 +1284,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
 
                 getImage(pedido.getString("id_taxi",""));
+                getImageVehiculo(pedido.getString("direccion_imagen_adelante",""));
 
-                flotante_pedir(false);
             } else if (s.equals("9") == true) {
                 mensaje_error_final(suceso.getMensaje());
 
@@ -1811,8 +1794,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                  try{
                      float conductor= Float.parseFloat(pedido.getString("calificacion_conductor","0"));
                      float vehiculo= Float.parseFloat(pedido.getString("calificacion_vehiculo","0"));
-                     rb_calificacion_conductor.setRating(conductor);
-                     rb_calificacion_vehiculo.setRating(vehiculo);
+                     rb_calificacion_conductor.setText(""+conductor);
                  }catch (Exception e)
                  {
                  }
@@ -2138,16 +2120,16 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                                     tv_color.setText(spedido.getString("color",""));
                                     tv_numero_movil.setText("Movil Nº:"+spedido.getString("numero_movil","")+".");
                                     //tv_cantidad_pedidos.setText("("+spedido.getString("cantidad_pedidos","0")+")");
-                                    getImage(spedido.getString("id_taxi",""));
                                     //getImageVehiculo(spedido.getString("direccion_imagen_adelante",""));
+                                    getImage(pedido.getString("id_taxi",""));
+                                    getImageVehiculo(pedido.getString("direccion_imagen_adelante",""));
 
                                     try{
                                         float conductor= Float.parseFloat(pedido.getString("calificacion_conductor","0"));
                                         float vehiculo= Float.parseFloat(pedido.getString("calificacion_vehiculo","0"));
                                        // rb_calificacion_conductor.setText(""+conductor);
                                        // rb_calificacion_vehiculo.setRating(vehiculo);
-                                        rb_calificacion_conductor.setRating(conductor);
-                                        rb_calificacion_vehiculo.setRating(vehiculo);
+                                        rb_calificacion_conductor.setText(""+conductor);
                                     }catch (Exception e)
                                     {
                                     }
@@ -2672,7 +2654,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                         .title(prefe.getString("",""))
                         .snippet(prefe.getString("","")));
 
-            }catch (Exception e)
+            }catch (Exception  e)
             {
 
             }
@@ -2988,6 +2970,37 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
         return bitmap;
     }
+
+    private void getImageVehiculo(String direccionImagen)//
+    {
+        //String  url=  getString(R.string.servidor_web)+"public/Imagen_Conductor/Perfil-"+id+".png";
+        String  url=  getString(R.string.servidor_web)+"storage/"+direccionImagen.replace("../storage/","");
+        Picasso.with(this).load(url).into(targetVehiculo);
+    }
+
+    Target targetVehiculo = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+
+            Drawable dw = new BitmapDrawable(getResources(), bitmap);
+            //se edita la imagen para ponerlo en circulo.
+
+            if( bitmap==null)
+            { dw = getResources().getDrawable(R.drawable.ic_vehiculo_negro);}
+
+            imagen_circulo(dw,im_vehiculo);
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+        }
+    };
 
     public void imagen_circulo(Drawable id_imagen, ImageView imagen) {
         Bitmap originalBitmap = ((BitmapDrawable) id_imagen).getBitmap();

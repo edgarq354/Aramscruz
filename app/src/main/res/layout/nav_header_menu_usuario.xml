@@ -15,14 +15,14 @@
         android:id="@+id/perfil"
         android:layout_width="120sp"
         android:layout_height="120sp"
-        app:srcCompat="@drawable/ic_perfil_blanco" />
+        app:srcCompat="@drawable/ic_perfil_negro" />
 
     <TextView
         android:id="@+id/nombre_completo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Android Studio"
-        android:textColor="@color/colorTextoBoton"
+        android:textColor="@color/colorIcons"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
 
@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="20sp"
-        android:textColor="@color/colorTextoBoton"
+        android:textColor="@color/colorIcons"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:text="Celular" />
 

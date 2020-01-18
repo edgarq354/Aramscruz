@@ -6,6 +6,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.provider.Settings;
@@ -63,15 +65,17 @@ public class MyNotificationManager {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            MediaPlayer mp;
-            mp = MediaPlayer.create(mCtx, sonido);
-            mp.start();
+
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -107,6 +111,10 @@ public class MyNotificationManager {
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -121,6 +129,8 @@ public class MyNotificationManager {
 
     public void notificacion(String title, String message, Intent intent) {
 
+        Uri sonido = Uri.parse("android.resource://"+ this.mCtx.getPackageName() + "/" + R.raw.notificacion);//sonido
+
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mCtx);
         NotificationManager notificationManager = (NotificationManager) mCtx.getSystemService(Context.NOTIFICATION_SERVICE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -134,7 +144,7 @@ public class MyNotificationManager {
         mBuilder.setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(false)
-                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setSound(sonido)
                 .setContentIntent(pintent);
 
 
@@ -146,6 +156,10 @@ public class MyNotificationManager {
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -180,15 +194,17 @@ public class MyNotificationManager {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            MediaPlayer mp;
-            mp = MediaPlayer.create(mCtx, sonido);
-            mp.start();
+
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -224,15 +240,17 @@ public class MyNotificationManager {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            MediaPlayer mp;
-            mp = MediaPlayer.create(mCtx, sonido);
-            mp.start();
+
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -268,15 +286,17 @@ public class MyNotificationManager {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            MediaPlayer mp;
-            mp = MediaPlayer.create(mCtx, sonido);
-            mp.start();
+
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -311,15 +331,17 @@ public class MyNotificationManager {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            MediaPlayer mp;
-            mp = MediaPlayer.create(mCtx, sonido);
-            mp.start();
+
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -354,15 +376,16 @@ public class MyNotificationManager {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            MediaPlayer mp;
-            mp = MediaPlayer.create(mCtx, sonido);
-            mp.start();
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
+            notificationChannel.setSound(sonido,new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build());
+
             notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             assert notificationManager != null;
             mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);

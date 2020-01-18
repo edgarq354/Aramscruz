@@ -79,6 +79,8 @@
                 android:id="@+id/it_registrar_conductor"
                 android:icon="@drawable/ic_volante"
                 android:title="SER CONDUCTOR" />
+            <item
+                android:title="" />
         </menu>
     </item>
 </menu>

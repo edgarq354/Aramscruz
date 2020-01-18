@@ -42,6 +42,7 @@
             android:layout_gravity="center_vertical|bottom"
             android:id="@+id/ll_pedido"
             >
+            <!--
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -59,7 +60,212 @@
 
 
 </LinearLayout>
+-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
 
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="5sp"
+                    android:layout_marginBottom="0sp"
+                    android:id="@+id/bt_ver_perfil"
+
+                    >
+                    <ImageView
+                        android:layout_width="90sp"
+                        android:layout_height="90sp"
+                        android:id="@+id/im_perfil"
+                        android:src="@drawable/ic_perfil_negro"
+                        android:layout_gravity="center"
+                        android:foregroundGravity="center"
+
+                        />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_weight="1"
+                        android:paddingLeft="15sp"
+                        >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="# 0"
+                            android:textStyle="bold"
+                            android:textColor="@color/colorIcons"
+                            android:gravity="center"
+                            android:id="@+id/tv_numero_movil"
+                            />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+
+                            >
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Marca: "
+                                android:textColor="@color/colorIcons"
+                                />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:id="@+id/tv_marca"
+                                android:textColor="@color/colorIcons"
+                                />
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="0sp"
+                            android:orientation="horizontal"
+
+                            >
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Modelo: "
+                                android:textColor="@color/colorIcons"
+                                />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:id="@+id/tv_modelo"
+                                android:textColor="@color/colorIcons"
+
+                                />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+
+                            >
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Color: "
+                                android:textColor="@color/colorIcons"
+                                />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:id="@+id/tv_color"
+                                android:textColor="@color/colorIcons"
+
+                                />
+
+                        </LinearLayout>
+
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:id="@+id/ll_vehiculo"
+                            >
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Placa: "
+                                android:textStyle="bold"
+                                android:textColor="@color/colorIcons"
+                                />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:id="@+id/tv_placa"
+                                android:textStyle="bold"
+                                android:textColor="@color/colorIcons"
+
+
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+                    <ImageView
+                        android:layout_width="90sp"
+                        android:layout_height="90sp"
+                        android:id="@+id/im_vehiculo"
+                        android:src="@drawable/ic_vehiculo_negro"
+                        android:layout_gravity="center"
+                        android:foregroundGravity="center"
+                        />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingLeft="15sp"
+                    >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="left|center"
+                        android:text="NOMBRE DEL CONDUCTOR"
+                        android:id="@+id/tv_nombre"
+                        android:textColor="@color/colorIcons"
+                        />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_weight="1"
+
+                        >
+
+                        <ImageView
+                            android:layout_width="20sp"
+                            android:layout_height="20sp"
+                            android:background="@mipmap/ic_start"
+                            />
+                        <TextView
+                            android:id="@+id/rb_conductor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textColor="@color/colorIcons"
+                            android:gravity="right|center"
+                            android:text="1"
+                            android:layout_marginRight="5sp"
+                            />
+                        <TextView
+                            android:id="@+id/tv_cantidad_pedidos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textColor="@color/colorIcons"
+                            android:gravity="right|center"
+                            android:text="(1)"
+                            android:layout_marginRight="15sp"
+                            />
+                    </LinearLayout>
+                </LinearLayout>
+
+
+
+            </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -134,230 +340,6 @@
 
 
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="50sp"
-        android:orientation="vertical"
-        android:id="@+id/ll_perfil"
-        android:background="@color/colorTransparente_2"
-        >
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="15sp"
-            >
-            <TextView
-                android:layout_marginTop="15sp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Su movil esta en camino . . ."
-                android:textColor="@color/colorTextoBoton"
-                android:layout_weight="1"
-                />
-            <ImageView
-
-                android:layout_marginRight="15sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@mipmap/ic_cerrar"
-                android:gravity="right"
-                android:layout_gravity="right"
-                android:id="@+id/im_cerrar"
-                />
-        </LinearLayout>
-
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                >
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="220sp"
-                    android:id="@+id/im_perfil"
-                    android:src="@drawable/ic_perfil_blanco"
-                    android:layout_marginBottom="15sp"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="NOMBRE DEL CONDUCTOR"
-                    android:id="@+id/tv_nombre"
-                    android:textStyle="bold"
-                    android:textColor="@color/colorTextoBoton"
-                    />
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10sp"
-                    >
-
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        style="@style/submit6"
-                        android:id="@+id/ll_vehiculo"
-                        >
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:text="#0"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorTextoBoton"
-                            android:padding="5sp"
-                            android:gravity="center"
-                            android:id="@+id/tv_numero_movil"
-                            />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:text="Ver datos del Movil"
-                            android:textColor="@color/colorTextoBoton"
-                            android:padding="5sp"
-                            android:gravity="center"
-                            android:layout_weight="1"
-                            />
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-
-                            android:src="@mipmap/ic_derecha"/>
-                    </LinearLayout>
-
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingLeft="5sp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Marca: "
-                        android:textColor="@color/colorTextoBoton"
-                        />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:id="@+id/tv_marca"
-                        android:textColor="@color/colorTextoBoton"
-                        android:textStyle="bold"
-                        />
-
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingLeft="5sp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Placa: "
-                        android:textColor="@color/colorTextoBoton"
-                        />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:id="@+id/tv_placa"
-                        android:textColor="@color/colorTextoBoton"
-                        android:textStyle="bold"
-                        />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingLeft="5sp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Color: "
-                        android:textColor="@color/colorTextoBoton"
-                        />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:id="@+id/tv_color"
-                        android:textColor="@color/colorTextoBoton"
-                        android:textStyle="bold"
-                        />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingLeft="5sp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Calificación del conductor"
-                        android:textColor="@color/colorTextoBoton"
-                        />
-
-                    <RatingBar
-                        android:id="@+id/rb_conductor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/colorTextoBoton"
-                        android:numStars="5"
-                        android:stepSize="1"
-                        android:rating="0"
-                        android:isIndicator="true"
-                        android:theme="@style/RatingBar"
-                        />
-
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingLeft="5sp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Calificación del vehículo"
-                        android:textColor="@color/colorTextoBoton"
-                        />
-                    <RatingBar
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/rb_vehiculo"
-                        android:numStars="5"
-                        android:stepSize="1"
-                        android:rating="0"
-                        android:isIndicator="true"
-                        android:theme="@style/RatingBar"
-                        />
-
-                </LinearLayout>
-            </LinearLayout>
-        </ScrollView>
-    </LinearLayout>
 
 
 

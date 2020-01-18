@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Aramscruz</string>
+    <string name="app_name">Transporte Seguro</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
@@ -73,7 +73,7 @@ El permiso de ubicación es necesario para mostrar su ubicación actual, ¿le gu
 
     <string name="whatsapp">+59176322224</string>
     <string name="version_sql">8</string>
-    <string name="nombre_sql">radiomovilclasico</string>
+    <string name="nombre_sql">aramscruz</string>
     <string name="telefono">33474444</string>
     <string name="correo">radiomovil.clasico@gmail.com</string>
     <string name="direccion">Av. Centenario Calle 9 esq. Dr. Gregorio Moreno (entre 3er y 4to anillo).</string>
@@ -159,5 +159,6 @@ El permiso de ubicación es necesario para mostrar su ubicación actual, ¿le gu
 
     <string name="title_activity_ayuda">Ayuda</string>
     <string name="title_activity_otra_direccion_multiples">Otra_direccion_multiples</string>
+    <string name="title_activity_pedido_usuario2">Pedido_usuario2</string>
 
 </resources>

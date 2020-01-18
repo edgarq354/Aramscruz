@@ -104,7 +104,6 @@
             android:name=".Registrar_usuario_facebook"
             android:label="@string/title_activity_registrar_usuario_facebook"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".registro_inicio_sesion.Animacion"
             android:screenOrientation="portrait">
@@ -146,7 +145,6 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".Pedido_finalizado" />
-
         <activity
             android:name=".Notificacion_pedido_cancelo"
             android:label="@string/title_activity_notificacion_pedido_cancelo" />
@@ -156,7 +154,6 @@
             android:name=".carreras.Carreras"
             android:label="Carreras"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".registro_inicio_sesion.Autenticar_celular"
             android:label="Verifica tu número"
@@ -179,13 +176,10 @@
             android:name=".compartir.Compartir_desde_pedido"
             android:label="@string/title_activity_compartir_desde_pedido"
             android:theme="@style/AppTheme.NoActionBar" />
-
-
         <activity
             android:name=".tarjeta_credito.Registrar_tarjeta"
             android:label="@string/title_activity_registrar_tarjeta"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".Condiciones_terminos"
             android:label="Condiciones y Terminos de uso" />
@@ -200,7 +194,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
-
         <activity
             android:name=".corporativo.Empresa"
             android:label="@string/title_activity_empresa"
@@ -294,7 +287,6 @@
             android:name=".menu_otra_direccion.Calcular_tarifa_confirmar"
             android:label="@string/title_activity_calcular_tarifa_confirmar"
             android:theme="@style/AppTheme.NoActionBar" />
-
 
         <service
             android:name=".Servicio_guardar_contacto"
