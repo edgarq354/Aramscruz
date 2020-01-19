@@ -149,7 +149,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
     boolean sw_verificar_si_tiene_pedido=false,sw_cancelar_pedido=true,sw_cancelar_pedido_durante_el_pedido=false;
 
        LinearLayout ll_flotante,ll_cancelar;
-    TextView tv_mensaje_pedido,tv_nombre,tv_placa,tv_marca,tv_color ,tv_modelo,tv_numero_movil,tv_cantidad_pedidos;
+    TextView tv_mensaje_pedido,tv_nombre,tv_placa,tv_marca,tv_color ,tv_modelo,tv_numero_movil,tv_cantidad_pedidos,
+                tv_nombre_empresa;
 
     ImageView  im_perfil,im_vehiculo;
     Button bt_cancelar_pedido;
@@ -275,6 +276,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         bt_contacto_conductor=(ImageButton)findViewById(R.id.bt_contacto_conductor);
         bt_contactar_empresa=(ImageButton)findViewById(R.id.bt_contacto_empresa);
         ll_vehiculo=(LinearLayout)findViewById(R.id.ll_vehiculo);
+
+        tv_nombre_empresa=(TextView)findViewById(R.id.tv_nombre_empresa);
 //fin layout flotante
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -1263,6 +1266,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                 tv_marca.setText(pedido.getString("marca",""));
                 tv_placa.setText(pedido.getString("placa",""));
                 tv_modelo.setText(pedido.getString("modelo",""));
+                tv_nombre_empresa.setText(pedido.getString("empresa",""));
                 tv_color.setText(pedido.getString("color",""));
                 tv_numero_movil.setText("Movil Nº:"+pedido.getString("numero_movil","")+" ");
                 tv_cantidad_pedidos.setText("("+pedido.getString("cantidad_pedidos","0")+")");
@@ -2118,6 +2122,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                                     tv_placa.setText(spedido.getString("placa",""));
                                     //tv_modelo.setText(spedido.getString("modelo",""));
                                     tv_color.setText(spedido.getString("color",""));
+                                    tv_nombre_empresa.setText(spedido.getString("empresa",""));
                                     tv_numero_movil.setText("Movil Nº:"+spedido.getString("numero_movil","")+".");
                                     //tv_cantidad_pedidos.setText("("+spedido.getString("cantidad_pedidos","0")+")");
                                     //getImageVehiculo(spedido.getString("direccion_imagen_adelante",""));
