@@ -74,7 +74,7 @@ public class Ayuda extends AppCompatActivity implements View.OnClickListener {
             case R.id.ll_reporte:
                 Intent it_chat=new Intent(getApplicationContext(), Chat.class);
                 it_chat.putExtra("id_conductor","0");
-                it_chat.putExtra("titulo","Administración");
+                it_chat.putExtra("titulo","SOPORTE");
                 startActivity(it_chat);
                 break;
         }
