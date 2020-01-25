@@ -1155,11 +1155,10 @@ public class Menu_usuario extends AppCompatActivity
                 String fecha= puntos_taxi.getJSONObject(i).getString("fecha");
                 fecha_ultimo=fecha;
                 int moto=Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
-                if(moto==0) {
-                    cargar_puntos_movil(lat, lon, rotacion, distancia, id, fecha);
-                }
 
+                    cargar_puntos_movil(lat, lon, rotacion, distancia, id, fecha,moto);
             }
+            /*
             for (int i = 0; i < puntos_taxi.length(); i++) {
                 int rotacion = Integer.parseInt(puntos_taxi.getJSONObject(i).getString("rotacion"));
                 double lat = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("latitud"));
@@ -1174,6 +1173,8 @@ public class Menu_usuario extends AppCompatActivity
                 }
 
             }
+
+             */
             ocultar_conductores_no_activos();
         } catch (Exception e) {
             e.printStackTrace();
@@ -1300,7 +1301,7 @@ public class Menu_usuario extends AppCompatActivity
         }
     }
 
-    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia,String id,String fecha)
+    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia,String id,String fecha,int moto)
     {
 
 
@@ -1311,18 +1312,36 @@ public class Menu_usuario extends AppCompatActivity
             marker_1.setVisible(true);
             marker_1.setRotation(rotacion);
             MarkerAnimation.animateMarkerToGB(marker_1, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_2)){
             fecha_2=fecha;
             marker_2.setVisible(true);
             marker_2.setRotation(rotacion);
             MarkerAnimation.animateMarkerToGB(marker_2, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else  if(id.equals(cond_3)){
             fecha_3=fecha;
             marker_3.setVisible(true);
             marker_3.setRotation(rotacion);
             MarkerAnimation.animateMarkerToGB(marker_3, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_4)){
             fecha_4=fecha;
@@ -1330,6 +1349,12 @@ public class Menu_usuario extends AppCompatActivity
             marker_4.setRotation(rotacion);
 
             MarkerAnimation.animateMarkerToGB(marker_4, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_5)){
             fecha_5=fecha;
@@ -1344,6 +1369,12 @@ public class Menu_usuario extends AppCompatActivity
             marker_6.setRotation(rotacion);
 
             MarkerAnimation.animateMarkerToGB(marker_6, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_7)){
             fecha_7=fecha;
@@ -1351,6 +1382,12 @@ public class Menu_usuario extends AppCompatActivity
             marker_7.setRotation(rotacion);
 
             MarkerAnimation.animateMarkerToGB(marker_7, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_8)){
             fecha_8=fecha;
@@ -1358,6 +1395,12 @@ public class Menu_usuario extends AppCompatActivity
             marker_8.setRotation(rotacion);
 
             MarkerAnimation.animateMarkerToGB(marker_8, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_9)){
             fecha_9=fecha;
@@ -1365,6 +1408,12 @@ public class Menu_usuario extends AppCompatActivity
             marker_9.setRotation(rotacion);
 
             MarkerAnimation.animateMarkerToGB(marker_9, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
         else if(id.equals(cond_10)){
             fecha_10=fecha;
@@ -1372,6 +1421,12 @@ public class Menu_usuario extends AppCompatActivity
             marker_10.setRotation(rotacion);
 
             MarkerAnimation.animateMarkerToGB(marker_10, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
         }
 
     }

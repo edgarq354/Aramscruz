@@ -96,6 +96,34 @@
         </LinearLayout>
 
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="15sp"
+            >
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TIC (Tarjeta de Identificacion de Conductor)"
+                style="@style/submit4"
+                android:background="@color/colorTextoBoton"
+                android:layout_weight="1"
+                android:id="@+id/bt_tic"
+                android:layout_gravity="center"
+                />
+            <ImageView
+                android:layout_width="60sp"
+                android:layout_height="60sp"
+                android:layout_gravity="center"
+                android:background="@drawable/ic_advertencia"
+                android:id="@+id/im_tic"
+                />
+
+        </LinearLayout>
+
+
+
 
 
 

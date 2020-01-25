@@ -160,5 +160,6 @@ El permiso de ubicación es necesario para mostrar su ubicación actual, ¿le gu
     <string name="title_activity_ayuda">Ayuda</string>
     <string name="title_activity_otra_direccion_multiples">Otra_direccion_multiples</string>
     <string name="title_activity_pedido_usuario2">Pedido_usuario2</string>
+    <string name="title_activity_foto_tic">Foto_tic</string>
 
 </resources>
