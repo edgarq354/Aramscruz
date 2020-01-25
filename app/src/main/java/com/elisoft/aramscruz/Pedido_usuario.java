@@ -414,7 +414,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         {
             sw_cancelar_pedido=true;
             this.ll_flotante.setVisibility(View.INVISIBLE);
-            bt_cancelar.setEnabled(false);
+            bt_cancelar.setEnabled(true);
             getSupportActionBar().show();
 
 

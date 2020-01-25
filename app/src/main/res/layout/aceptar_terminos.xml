@@ -10,6 +10,13 @@
         android:padding="10sp"
         >
 
+        <ImageView
+            android:layout_width="150sp"
+            android:layout_height="150sp"
+            android:background="@drawable/ic_logo_conductor"
+            android:layout_gravity="center"
+            />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
