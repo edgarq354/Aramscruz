@@ -878,7 +878,7 @@ public class Menu_usuario extends AppCompatActivity
             queue.add(myRequest);
 
         } catch (Exception e) {
-
+            ver_moviles();
         }
 
     }
