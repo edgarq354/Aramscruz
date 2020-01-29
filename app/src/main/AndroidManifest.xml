@@ -34,9 +34,13 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".empresa.Empresa"
+            android:label="@string/title_activity_empresa"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
             android:name=".preregistro.Foto_tic"
             android:label="@string/title_activity_foto_tic"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
