@@ -21,16 +21,17 @@ import android.widget.Toast;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.guia_turistica.CLugar;
 import com.elisoft.aramscruz.menu_otra_direccion.Otra_direccion;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 public class Item_empresa extends BaseAdapter {
 
     protected Activity activity;
-    protected ArrayList<CLugar> items;
+    protected ArrayList<CEmpresa> items;
     private Context mContext;
 
-    public Item_empresa(Context c, Activity activity, ArrayList<CLugar> items) {
+    public Item_empresa(Context c, Activity activity, ArrayList<CEmpresa> items) {
         this.activity = activity;
         this.items = items;
         this.mContext=c;
@@ -64,123 +65,30 @@ public class Item_empresa extends BaseAdapter {
 
         if (convertView == null) {
             LayoutInflater inf = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = inf.inflate(R.layout.item_lugar, null);
+            v = inf.inflate(R.layout.item_empresa, null);
             LayoutInflater inflater = (LayoutInflater) mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
-        final CLugar  ped = items.get(position);
+        final CEmpresa  ped = items.get(position);
 
         TextView nombre= v.findViewById(R.id.tv_nombre);
         TextView direccion= v.findViewById(R.id.tv_direccion);
-        FloatingActionButton fb_llamar= v.findViewById(R.id.fb_llamar);
-        FloatingActionButton fb_whatsapp= v.findViewById(R.id.fb_whatsapp);
-        FloatingActionButton fb_ver_mapa= v.findViewById(R.id.fb_ver_mapa);
-        nombre.setText(ped.getNombre());
+        de.hdodenhof.circleimageview.CircleImageView im_perfil=v.findViewById(R.id.im_perfil);
+
+
+        nombre.setText(ped.getRazon_social());
         direccion.setText(ped.getDireccion());
 
-        fb_llamar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        String  url=  this.activity.getString(R.string.servidor_web)+"storage"+ped.getDireccion_logo_corporativo();
 
-                if(ped.getTelefono().length()>3){
-                    Intent llamada = new Intent(Intent.ACTION_DIAL);
-                    llamada.setData(Uri.parse("tel:" + ped.getTelefono().trim()));
-
-                    if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                        verificar_permiso_llamada();
-                    }else{
-                        mContext.startActivity(llamada);
-                    }
-
-                }else {
-                    Toast.makeText(mContext,"No tiene telefono",Toast.LENGTH_SHORT).show();
-                }
-
-
-            }
-        });
-
-        fb_whatsapp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(ped.getWhatsapp().length()>5){
-                    String formattedNumber = ped.getWhatsapp().trim();
-                    try{
-                        Intent sendIntent =new Intent("android.intent.action.MAIN");
-                        sendIntent.setComponent(new ComponentName("com.whatsapp", "com.whatsapp.Conversation"));
-                        sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.setType("text/plain");
-                        sendIntent.putExtra(Intent.EXTRA_TEXT,"hola");
-                        sendIntent.putExtra("sms_body", "Hola que tal");
-                        sendIntent.putExtra("jid", formattedNumber +"@s.whatsapp.net");
-                        sendIntent.setPackage("com.whatsapp");
-                        mContext.startActivity(sendIntent);
-                    }
-                    catch(Exception e)
-                    {
-                        Toast.makeText(mContext,"Error/n"+ e.toString(),Toast.LENGTH_SHORT).show();
-                    }
-                }else {
-                    Toast.makeText(mContext,"No tiene WhatsApp",Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        fb_ver_mapa.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent mapa=new Intent(mContext, Otra_direccion.class);
-                mapa.putExtra("id",String.valueOf(ped.getId()));
-                mapa.putExtra("nombre",ped.getNombre());
-                mapa.putExtra("direccion",ped.getDireccion());
-                mapa.putExtra("latitud",ped.getLatitud());
-                mapa.putExtra("longitud",ped.getLongitud());
-                mapa.putExtra("id_categoria",String.valueOf(ped.getId_categoria()));
-                mContext.startActivities(new Intent[]{mapa});
-
-            }
-        });
-
-
+        Picasso.with(this.activity).load(url).placeholder(R.drawable.ic_empresa).into(im_perfil);
 
 
         return v;
 
     }
 
-    public void verificar_permiso_llamada()
-    {
-        final String[] PERMISSIONS = {Manifest.permission.CALL_PHONE };
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CALL_PHONE)) {
-            //YA LO CANCELE Y VOUELVO A PERDIR EL PERMISO.
-
-            AlertDialog.Builder dialogo1 = new AlertDialog.Builder(mContext);
-            dialogo1.setTitle("Atención!");
-            dialogo1.setMessage("Debes otorgar permisos de acceso a LLAMADA.");
-            dialogo1.setCancelable(false);
-            dialogo1.setPositiveButton("Solicitar permiso", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogo1, int id) {
-                    dialogo1.cancel();
-                    ActivityCompat.requestPermissions(activity,
-                            PERMISSIONS,
-                            1);
-
-                }
-            });
-            dialogo1.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogo1, int id) {
-                    dialogo1.cancel();
-
-                }
-            });
-            dialogo1.show();
-        } else {
-            ActivityCompat.requestPermissions(activity,
-                    PERMISSIONS,
-                    1);
-        }
-    }
 
 
 }

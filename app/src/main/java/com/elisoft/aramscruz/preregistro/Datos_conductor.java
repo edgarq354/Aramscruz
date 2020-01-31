@@ -149,8 +149,8 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
                 id_empresa=lista_id_empresa.get(pos);
                 nombre_empresa=lista_nombre_empresa.get(pos);
 
-                Toast.makeText(adapterView.getContext(),
-                        id_empresa+" : "+nombre_empresa, Toast.LENGTH_SHORT).show();
+               // Toast.makeText(adapterView.getContext(),
+                 //       id_empresa+" : "+nombre_empresa, Toast.LENGTH_SHORT).show();
             }
 
             @Override

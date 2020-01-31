@@ -67,7 +67,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.SqLite.AdminSQLiteOpenHelper;
-import com.elisoft.aramscruz.corporativo.Empresa;
+import com.elisoft.aramscruz.empresa.Empresa;
 import com.elisoft.aramscruz.historial_notificacion.Notificacion;
 import com.elisoft.aramscruz.informacion.Informacion;
 import com.elisoft.aramscruz.menu_otra_direccion.Buscar_direccion_inicio;
@@ -1997,9 +1997,13 @@ public class Menu_usuario extends AppCompatActivity
                 }
                 break;
             case R.id.fb_llamar:
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                    verificar_permiso_llamada();
+                }else{
+                    startActivity(new Intent(this, Empresa.class));
+                }
 
-
-                llamar_radio_movil();
+//                llamar_radio_movil();
 
                 break;
             case R.id.fb_whatsapp:

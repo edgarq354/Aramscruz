@@ -8,4 +8,10 @@
     tools:context=".empresa.Empresa"
     tools:showIn="@layout/activity_empresa2">
 
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/lv_lista"
+        />
+
 </android.support.constraint.ConstraintLayout>
