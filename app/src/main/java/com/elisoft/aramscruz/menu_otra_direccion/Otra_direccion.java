@@ -52,6 +52,13 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.AndroidPermissions;
 import com.elisoft.aramscruz.Buscador.PlacesAutoCompleteAdapter;
 import com.elisoft.aramscruz.Constants;
@@ -113,7 +120,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
 
 
     boolean sw_ver_taxi_cerca = false;
-    private JSONArray puntos_taxi;
+    private JSONArray puntos_taxi=null;
 
 
     private static final String LOGTAG = "android-localizacion";
@@ -141,8 +148,6 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
 
     public TextView tv_ubicacion;
     private GoogleMap mMap;
-    public LocationManager locationManager;
-    public LocationListener locationListener;
 
 
     int sw_acercar_a_mi_ubicacion=0;
@@ -174,7 +179,6 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
     ImageView delete;
 
     String nombre="",direccion="";
-    Servicio_ver_movil hilo_m;
     //fin de buscador de ubicacion...
 
 
@@ -221,7 +225,6 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         pedir_moto.setOnClickListener(this);
 
 
-        hilo_m = new  Servicio_ver_movil();
 /*
 // evento de onclick en la Lista de Busqueda ...
         lista_buscar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -1233,8 +1236,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
 
                 if(sw_ver_taxi_cerca==false) {
                     sw_ver_taxi_cerca=true;
-                    hilo_m=new Servicio_ver_movil();
-                    hilo_m.execute(getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango", "1", String.valueOf(addressLatLng.latitude), String.valueOf(addressLatLng.longitude));// parametro que recibe el doinbackground*/
+                    servicio_volley_get_taxi_en_rango( String.valueOf(addressLatLng.latitude), String.valueOf(addressLatLng.longitude));
                 }
             }catch (Exception e)
             {
@@ -1246,8 +1248,8 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         {
             try {
                 int id_pedido= Integer.parseInt(ult.getString("id_pedido",""));
-                Servicio hilo_taxi = new  Servicio();
-                hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido", "5", String.valueOf(id_pedido));// parametro que recibe el doinbackground
+                //Servicio hilo_taxi = new  Servicio();
+                //hilo_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido", "5", String.valueOf(id_pedido));// parametro que recibe el doinbackground
             }catch (Exception e)
             {
                 sw_ver_taxi_cerca=false;
@@ -1457,8 +1459,15 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
                             new Thread(new Runnable() {
                                 public void run() {
                                     sw_obteniendo_direccion=true;
-                                    direccion[0] =obtener_direccion( addressLatLng.latitude, addressLatLng.longitude);
-                                    direccion[1] =obtener_direccion( myPosition.latitude, myPosition.longitude);
+                                    try {
+                                        direccion[0] = obtener_direccion(addressLatLng.latitude, addressLatLng.longitude);
+
+                                        direccion[1] = obtener_direccion(myPosition.latitude, myPosition.longitude);
+                                    }catch (Exception ee)
+                                    {
+                                        direccion[0]="";
+                                        direccion[1]="";
+                                    }
 
                                     runOnUiThread(new Runnable() {
                                         public void run() {
@@ -1511,246 +1520,74 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
     }
 
     //servicio para ver los moviles
-    public class Servicio_ver_movil extends AsyncTask<String,Integer,String> {
+    private void servicio_volley_get_taxi_en_rango(String latitud, String longitud) {
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("latitud", String.valueOf(latitud));
+            jsonParam.put("longitud", String.valueOf(longitud));
+
+            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
 
-        @Override
-        protected String doInBackground(String... params) {
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-// busca taxi dentro de su rango
-            if(!isCancelled()) {
-                if (params[1] == "1") {
-                    try {
-                        HttpURLConnection urlConn;
+                                if (suceso.getSuceso().equals("1")) {
+                                    puntos_taxi = respuestaJSON.getJSONArray("taxi");
+                                    //final
+                                    sw_ver_taxi_cerca=false;
+                                    agregar_en_mapa_ubicaciones_de_taxi();
 
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
-
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("latitud", params[2]);
-                        jsonParam.put("longitud", params[3]);
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
-
-                        int respuesta = urlConn.getResponseCode();
-
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            SystemClock.sleep(950);
-
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                            if (suceso.getSuceso().equals("1")) {
-                                puntos_taxi = respuestaJSON.getJSONArray("taxi");
-                                devuelve = "1";
-                            } else {
-                                devuelve = "20";
+                                } else  {
+                                    sw_ver_taxi_cerca=false;
+                                    ver_moviles();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                sw_ver_taxi_cerca=false;
+                                ver_moviles();
                             }
 
                         }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
                 }
-            }else{
-                devuelve="500";
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
 
 
 
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                mMap.clear();
-                sw_ver_taxi_cerca=false;
-                agregar_en_mapa_ubicaciones_de_taxi();
-
-            }else if(s.equals("500")){
-
-            }
-            else
-            {
-                sw_ver_taxi_cerca=false;
-                ver_moviles();
-
-            }
-
+            queue.add(myRequest);
+        } catch (Exception e) {
 
         }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
     }
+
 
     @Override
     protected void onDestroy() {
-        hilo_m.cancel(true);
         super.onDestroy();
     }
 
-    // comenzar el servicio para la conexion con la base de datos.....
-    public class Servicio extends AsyncTask<String,Integer,String> {
-
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-// busca taxi dentro de su rango
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("latitud", params[2]);
-                    jsonParam.put("longitud", params[3]);
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        SystemClock.sleep(950);
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-                        if (suceso.getSuceso().equals("1")) {
-                            puntos_taxi=respuestaJSON.getJSONArray("taxi");
-                            devuelve="1";
-                        } else  {
-                            devuelve = "20";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                mMap.clear();
-
-                agregar_en_mapa_ubicaciones_de_taxi();
-                sw_ver_taxi_cerca=false;
-            }else if(s.equals("20"))
-            {
-                sw_ver_taxi_cerca=false;
-            }
-            else
-            {
-
-                mensaje_error("Falla en tu conexión a Internet.");
-                sw_ver_taxi_cerca=false;
-            }
-
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
 
 
 
@@ -1864,7 +1701,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         if(mGoogleApiClient.isConnected()){
             Log.v("Google API","Dis-Connecting");
             mGoogleApiClient.disconnect();
-            hilo_m.cancel(true);
+
         }
         super.onPause();
     }
@@ -1880,11 +1717,8 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
                 double lon = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("longitud"));
                 String distancia= puntos_taxi.getJSONObject(i).getString("distancia");
 
-                int moto=Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
-                if(moto==0){
-                    cargar_puntos_movil(lat, lon,rotacion,distancia);
-                }
-
+                int moto= Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
+                cargar_puntos_movil(lat, lon,rotacion,distancia,moto);
 
             }
         } catch (Exception e) {
@@ -1892,28 +1726,39 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         }
         ver_moviles();
     }
-    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia)
-    {
+
+
+    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia, int moto) {
         try {
 
             LatLng punto = new LatLng(lat, lon);
 
-            mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
-                    .position(punto)
-                    .anchor((float)0.5,(float)0.8)
-                    .flat(true)
-                    .rotation(rotacion)
-                    .title("Mtrs. "+distancia));
+            if(moto==0){
+                mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                        .position(punto)
+                        .anchor((float) 0.5, (float) 0.8)
+                        .flat(true)
+                        .rotation(rotacion)
+                        .title("Mtrs. " + distancia));
+            }else{
+                mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker))
+                        .position(punto)
+                        .anchor((float) 0.5, (float) 0.8)
+                        .flat(true)
+                        .rotation(rotacion)
+                        .title("Mtrs. " + distancia));
+            }
 
-            this.limpiar_mapa=0;
-        }
-        catch (Exception e)
-        {
+
+        } catch (Exception e) {
 
         }
 
     }
+
+
 
     public void verificar_permiso_imei()
     {

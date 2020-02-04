@@ -19,11 +19,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
@@ -36,6 +39,9 @@ import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.Pedido_usuario;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
+import com.elisoft.aramscruz.empresa.CEmpresa;
+import com.elisoft.aramscruz.empresa.Empresa;
+import com.elisoft.aramscruz.empresa.Item_empresa;
 import com.elisoft.aramscruz.perfil.Perfil_pasajero;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -48,6 +54,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -85,8 +92,15 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     CheckBox cb_tipo_pedido_empresa;
 
     TextView tv_monto_distancia,tv_monto_tiempo,tv_tarifa_normal,tv_tarifa_de_lujo,tv_tarifa_con_aire,tv_tarifa_maletero,tv_tarifa_con_pedido, tv_tarifa_con_reserva,tv_tarifa_moto,tv_tarifa_moto_pedido;
+    TextView tv_tarifa_camioncito;
+    TextView tv_tarifa_compras;
+
+    TextView tv_tarifa_grua_torito;
+    TextView tv_tarifa_aeropuerto;
 
     TextView tv_billetera;
+
+    TextView tv_nombre_empresa;
 
 
     int cantidad_solicitud_tarifa=0;
@@ -108,6 +122,13 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             pedir_moto,
             ll_solicitar_ahora;
 
+    FrameLayout fm_empresas;
+    ImageView im_cerrar;
+    ListView lv_lista_empresas;
+    String id_empresa="0";
+    ArrayList<CEmpresa> cEmpresas=new ArrayList<CEmpresa>();
+
+
     LinearLayout
             pedir_movil_normal_seleccion,
             pedir_movil_lujo_seleccion,
@@ -117,7 +138,8 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             pedir_movil_camioncito_seleccion,
             pedir_movil_compras_seleccion,
             pedir_movil_empresa_seleccion,
-            pedir_movil_grua_torito_seleccion;
+            pedir_movil_grua_torito_seleccion,
+            pedir_movil_aeropuerto_seleccion;
 
     ImageView
             im_movil_normal,
@@ -128,11 +150,11 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             im_movil_camioncito,
             im_movil_compras,
             im_movil_empresa,
-            im_movil_grua_torito;
+            im_movil_grua_torito,
+            im_movil_aeropuerto;
 
 
     boolean sw_ver_taxi_cerca = false;
-    Servicio_ver_movil hilo_m;
     private JSONArray puntos_taxi;
 
 
@@ -168,6 +190,12 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         tv_tarifa_moto_pedido=(TextView)findViewById(R.id.tv_tarifa_moto_pedido);
         tv_billetera=(TextView)findViewById(R.id.tv_billetera);
 
+        tv_tarifa_camioncito=(TextView)findViewById(R.id.tv_tarifa_camioncito);
+        tv_tarifa_compras=(TextView)findViewById(R.id.tv_tarifa_compras);
+        tv_nombre_empresa=(TextView)findViewById(R.id.tv_nombre_empresa);
+        tv_tarifa_grua_torito=(TextView)findViewById(R.id.tv_tarifa_grua_torito);
+        tv_tarifa_aeropuerto=(TextView)findViewById(R.id.tv_tarifa_aeropuerto);
+
         cb_tipo_pedido_empresa=(CheckBox)findViewById(R.id.cb_tipo_pedido_empresa);
 
 
@@ -176,6 +204,10 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
         ll_solicitar_ahora = (LinearLayout) findViewById(R.id.ll_solicitar_ahora);
 
+        fm_empresas= (FrameLayout) findViewById(R.id.fm_empresas);
+        im_cerrar=(ImageView) findViewById(R.id.im_cerrar);
+        lv_lista_empresas=(ListView) findViewById(R.id.lv_lista_empresas);
+
         pedi_taxi = (LinearLayout) findViewById(R.id.pedir_movil);
         pedir_movil_aire = (LinearLayout) findViewById(R.id.pedir_movil_aire);
         pedir_movil_lujo = (LinearLayout) findViewById(R.id.pedir_movil_lujo);
@@ -183,6 +215,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_movil_pedido = (LinearLayout) findViewById(R.id.pedir_movil_pedido);
         pedir_movil_reserva = (LinearLayout) findViewById(R.id.pedir_movil_reserva);
         pedir_moto = (LinearLayout)findViewById(R.id.pedir_moto);
+
 
 //seleccion
         pedir_movil_normal_seleccion = (LinearLayout) findViewById(R.id.pedir_movil_normal_seleccion);
@@ -194,6 +227,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_movil_compras_seleccion=findViewById(R.id.pedir_movil_compras_seleccion);
         pedir_movil_empresa_seleccion=findViewById(R.id.pedir_movil_empresa_seleccion);
         pedir_movil_grua_torito_seleccion=findViewById(R.id.pedir_movil_grua_torito_seleccion);
+        pedir_movil_aeropuerto_seleccion = (LinearLayout)findViewById(R.id.pedir_movil_aeropuerto_seleccion);
 
         im_movil_normal = (ImageView) findViewById(R.id.im_movil_normal);
         im_movil_aire = (ImageView) findViewById(R.id.im_movil_aire);
@@ -204,6 +238,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         im_movil_compras=findViewById(R.id.im_movil_compras);
         im_movil_empresa=findViewById(R.id.im_movil_empresa);
         im_movil_grua_torito=findViewById(R.id.im_movil_grua_torito);
+        im_movil_aeropuerto=findViewById(R.id.im_movil_aeropuerto);
 //fin seleccion
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -261,9 +296,11 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         pedir_movil_compras_seleccion.setOnClickListener(this);
         pedir_movil_empresa_seleccion.setOnClickListener(this);
         pedir_movil_grua_torito_seleccion.setOnClickListener(this);
+        pedir_movil_aeropuerto_seleccion.setOnClickListener(this);
+
+        im_cerrar.setOnClickListener(this);
 
 
-                hilo_m = new Servicio_ver_movil();
 
         actualizar_billetera();
         direccion[0] =obtener_direccion( latitud_inicio,longitud_inicio);
@@ -273,6 +310,22 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
         mis_datos=getSharedPreferences(getString(R.string.mis_datos),MODE_PRIVATE);
 
+
+
+        lv_lista_empresas.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                CEmpresa hi=new CEmpresa();
+                hi=cEmpresas.get(i);
+                id_empresa=hi.getId();
+                tv_nombre_empresa.setText(hi.getRazon_social());
+                String  url=  getString(R.string.servidor_web)+"storage"+hi.getDireccion_logo_corporativo();
+                Picasso.with(Calcular_tarifa_confirmar.this).load(url).placeholder(R.drawable.ic_empresa).into(im_movil_empresa);
+                fm_empresas.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        servicio_volley_lista_empresa();
     }
 
     public void solicitar_tarifa()
@@ -433,21 +486,26 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                         @Override
                         public void onResponse(JSONObject respuestaJSON) {
                             pDialog.cancel();
-                            String metros,minuto,normal,de_lujo,con_aire,maletero,pedido,reserva,moto,moto_pedido;
                             try {
                                 suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
                                 if (suceso.getSuceso().equals("1")) {
-                                    metros=respuestaJSON.getString("metros");
-                                    minuto=respuestaJSON.getString("minutos");
-                                    normal=respuestaJSON.getString("normal");
-                                    de_lujo=respuestaJSON.getString("de_lujo");
-                                    con_aire=respuestaJSON.getString("con_aire");
-                                    maletero=respuestaJSON.getString("maletero");
-                                    pedido=respuestaJSON.getString("pedido");
-                                    reserva=respuestaJSON.getString("reserva");
-                                    moto=respuestaJSON.getString("moto");
-                                    moto_pedido=respuestaJSON.getString("moto_pedido");
+                                    String metros=respuestaJSON.getString("metros");
+                                    String minuto=respuestaJSON.getString("minutos");
+                                    String normal=respuestaJSON.getString("normal");
+                                    String de_lujo=respuestaJSON.getString("de_lujo");
+                                    String con_aire=respuestaJSON.getString("con_aire");
+                                    String maletero=respuestaJSON.getString("maletero");
+                                    String pedido=respuestaJSON.getString("pedido");
+                                    String reserva=respuestaJSON.getString("reserva");
+                                    String moto=respuestaJSON.getString("moto");
+                                    String moto_pedido=respuestaJSON.getString("moto_pedido");
+
+                                    String camioncito=respuestaJSON.getString("camioncito");
+                                    String compras=respuestaJSON.getString("compras");
+                                    String empresa=respuestaJSON.getString("empresa");
+                                    String grua_torito=respuestaJSON.getString("grua_torito");
+                                    String aeropuerto=respuestaJSON.getString("aeropuerto");
 
 
                                     //final
@@ -474,6 +532,11 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                                     tv_tarifa_con_reserva.setText("Bs. "+ reserva);
                                     tv_tarifa_moto.setText("Bs. "+moto);
                                     tv_tarifa_moto_pedido.setText("Bs. "+ moto_pedido);
+
+                                    tv_tarifa_camioncito.setText("Bs. "+camioncito);
+                                    tv_tarifa_compras.setText("Bs. "+compras);
+                                    tv_tarifa_grua_torito.setText("Bs. "+grua_torito);
+                                    tv_tarifa_aeropuerto.setText("Bs. "+ aeropuerto);
 
                                     monto_normal=Double.parseDouble(normal);
 
@@ -680,11 +743,16 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                 break;
             case R.id.pedir_movil_empresa_seleccion:
                 //EMPRESA
-                seleccionar_movil(17);
+                fm_empresas.setVisibility(View.VISIBLE);
+                //seleccionar_movil(17);
                 break;
             case R.id.pedir_movil_grua_torito_seleccion:
                 //GRUA TORITO
                 seleccionar_movil(18);
+                break;
+            case R.id.pedir_movil_aeropuerto_seleccion:
+                //AEROPUERTO
+                seleccionar_movil(19);
                 break;
             case  R.id.ll_solicitar_ahora:
 
@@ -805,6 +873,13 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                     }
 
                 break;
+
+            case R.id.im_cerrar:
+                fm_empresas.setVisibility(View.INVISIBLE);
+                im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa);
+                id_empresa="0";
+                tv_nombre_empresa.setText("~");
+                break;
         }
     }
 
@@ -846,8 +921,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
         im_movil_camioncito.setImageResource(R.drawable.ic_movil_camioncito_gris);
         im_movil_compras.setImageResource(R.drawable.ic_movil_compras_gris);
-        im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa_gris);
+        //im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa_gris);
         im_movil_grua_torito.setImageResource(R.drawable.ic_movil_grua_torito_gris);
+        im_movil_aeropuerto.setImageResource(R.drawable.ic_movil_aeropuerto_gris);
 
         switch (i){
             case 1:
@@ -876,11 +952,15 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                 break;
             case 17:
                 //EMPRESA
-                im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa);
+               // im_movil_empresa.setImageResource(R.drawable.ic_movil_empresa);
                 break;
             case 18:
                 //GRUA TORITO
                 im_movil_grua_torito.setImageResource(R.drawable.ic_movil_grua_torito);
+                break;
+            case 19:
+                //GRUA TORITO
+                im_movil_aeropuerto.setImageResource(R.drawable.ic_movil_aeropuerto);
                 break;
         }
     }
@@ -1168,8 +1248,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
                 if(sw_ver_taxi_cerca==false) {
                     sw_ver_taxi_cerca=true;
-                    hilo_m=new Servicio_ver_movil();
-                    hilo_m.execute(getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango", "1", String.valueOf(latitud_inicio), String.valueOf(longitud_inicio));// parametro que recibe el doinbackground*/
+                    servicio_volley_get_taxi_en_rango(String.valueOf(latitud_inicio), String.valueOf(longitud_inicio));
                 }
             }catch (Exception e)
             {
@@ -1191,128 +1270,66 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         }
     }
 
+    private void servicio_volley_get_taxi_en_rango(String latitud, String longitud) {
+
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("latitud", String.valueOf(latitud));
+            jsonParam.put("longitud", String.valueOf(longitud));
+
+            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
+            RequestQueue queue = Volley.newRequestQueue(this);
 
 
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
-    //servicio para ver los moviles
-    public class Servicio_ver_movil extends AsyncTask<String,Integer,String> {
+                                if (suceso.getSuceso().equals("1")) {
+                                    puntos_taxi = respuestaJSON.getJSONArray("lista");
+                                    //final
+                                    sw_ver_taxi_cerca=false;
+                                    agregar_en_mapa_ubicaciones_de_taxi();
 
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-// busca taxi dentro de su rango
-            if(!isCancelled()) {
-                if (params[1] == "1") {
-                    try {
-                        HttpURLConnection urlConn;
-
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
-
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("latitud", params[2]);
-                        jsonParam.put("longitud", params[3]);
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
-
-                        int respuesta = urlConn.getResponseCode();
-
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            SystemClock.sleep(950);
-
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                            if (suceso.getSuceso().equals("1")) {
-                                puntos_taxi = respuestaJSON.getJSONArray("taxi");
-                                devuelve = "1";
-                            } else {
-                                devuelve = "20";
+                                } else  {
+                                    sw_ver_taxi_cerca=false;
+                                    ver_moviles();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                sw_ver_taxi_cerca=false;
+                                ver_moviles();
                             }
 
                         }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
                 }
-            }else{
-                devuelve="500";
             }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
 
 
 
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-            if (s.equals("1")) {
-                //  mMap.clear();
-                sw_ver_taxi_cerca=false;
-                agregar_en_mapa_ubicaciones_de_taxi();
-
-            }else if(s.equals("500")){
-
-            }
-            else
-            {
-                sw_ver_taxi_cerca=false;
-                ver_moviles();
-
-            }
-
+            queue.add(myRequest);
+        } catch (Exception e) {
 
         }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
     }
 
 
@@ -1325,9 +1342,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                 String distancia= puntos_taxi.getJSONObject(i).getString("distancia");
 
                 int moto= Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
-                if(moto==0){
-                    cargar_puntos_movil(lat, lon,rotacion,distancia);
-                }
+                    cargar_puntos_movil(lat, lon,rotacion,distancia,moto);
 
             }
         } catch (Exception e) {
@@ -1335,22 +1350,121 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         }
         //ver_moviles();
     }
-    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia) {
+    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia, int moto) {
         try {
 
             LatLng punto = new LatLng(lat, lon);
 
-            mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
-                    .position(punto)
-                    .anchor((float) 0.5, (float) 0.8)
-                    .flat(true)
-                    .rotation(rotacion)
-                    .title("Mtrs. " + distancia));
+            if(moto==0){
+                mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                        .position(punto)
+                        .anchor((float) 0.5, (float) 0.8)
+                        .flat(true)
+                        .rotation(rotacion)
+                        .title("Mtrs. " + distancia));
+            }else{
+                mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker))
+                        .position(punto)
+                        .anchor((float) 0.5, (float) 0.8)
+                        .flat(true)
+                        .rotation(rotacion)
+                        .title("Mtrs. " + distancia));
+            }
+
 
         } catch (Exception e) {
 
         }
+
+    }
+
+    private void servicio_volley_lista_empresa() {
+
+        try {
+            String v_url= getString(R.string.servidor)+"frmTaxi.php?opcion=get_empresa";
+
+            JSONObject jsonParam= new JSONObject();
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    v_url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
+
+
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+
+                                if (suceso.getSuceso().equals("1")) {
+                                    JSONArray usu=respuestaJSON.getJSONArray("lista");
+                                    cEmpresas=new ArrayList<CEmpresa>();
+                                    for (int i=0;i<usu.length();i++)
+                                    {
+                                        String id=usu.getJSONObject(i).getString("id");
+                                        String razon_social=usu.getJSONObject(i).getString("razon_social");
+                                        String direccion=usu.getJSONObject(i).getString("direccion");
+                                        String telefono=usu.getJSONObject(i).getString("telefono");
+                                        String whatsapp=usu.getJSONObject(i).getString("whatsapp");
+                                        String direccion_logo_corporativo=usu.getJSONObject(i).getString("direccion_logo_corporativo");
+
+
+                                        cEmpresas.add(new CEmpresa( id,
+                                                razon_social,
+                                                direccion,
+                                                telefono,
+                                                whatsapp,
+                                                direccion_logo_corporativo));
+                                    }
+
+                                    Item_empresa adaptador = new Item_empresa(getApplicationContext(), Calcular_tarifa_confirmar.this,cEmpresas);
+                                    lv_lista_empresas.setAdapter(adaptador);
+
+                                } else  {
+                                    cEmpresas.clear();
+                                    Item_empresa adaptador = new Item_empresa(getApplicationContext(),Calcular_tarifa_confirmar.this,cEmpresas);
+                                    lv_lista_empresas.setAdapter(adaptador);
+                                }
+
+                                //...final de final....................
+
+
+
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }
+            ){
+                public Map<String,String> getHeaders() throws AuthFailureError {
+                    Map<String,String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
+
+                    return  parametros;
+                }
+            };
+
+
+            queue.add(myRequest);
+        } catch (Exception e) {
+
+        }
+
 
     }
 

@@ -66,7 +66,7 @@ public class Calcular_Tarifa extends AppCompatActivity implements OnMapReadyCall
     TextView tv_punto_inicio,tv_punto_fin,tv_;
     ProgressDialog pDialog;
     Suceso suceso;
-    TextView tv_monto_distancia,tv_monto_tiempo,tv_tarifa_normal,tv_tarifa_de_lujo,tv_tarifa_con_aire,tv_tarifa_maletero,tv_tarifa_con_pedido, tv_tarifa_con_reserva,tv_tarifa_moto,tv_tarifa_moto_pedido;
+    TextView tv_monto_distancia,tv_monto_tiempo,tv_tarifa_normal,tv_tarifa_de_lujo,tv_tarifa_con_aire,tv_tarifa_maletero,tv_tarifa_con_pedido, tv_tarifa_con_reserva,tv_tarifa_moto,tv_tarifa_moto_pedido,tv_tarifa_aeropuerto;
 
 
     @Override

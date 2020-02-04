@@ -855,6 +855,7 @@ public class Menu_usuario extends AppCompatActivity
                                 }
 
                             } catch (JSONException e) {
+                                sw_ver_taxi_cerca=false;
                                 ver_moviles();
                                 e.printStackTrace();
                             }
@@ -953,7 +954,7 @@ public class Menu_usuario extends AppCompatActivity
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    mensaje_error_final("Falla en tu conexión a Internet.");
+                 //   mensaje_error_final("Falla en tu conexión a Internet.");
                 }
             }
             ){

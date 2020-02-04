@@ -7,9 +7,13 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".menu_otra_direccion.Calcular_tarifa_confirmar"
     tools:showIn="@layout/activity_calcular_tarifa_confirmar"
-    android:orientation="vertical"
     android:background="@color/colorTextoBoton"
     >
+
+
+
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -696,7 +700,7 @@
                         <ImageView
                             android:layout_width="80sp"
                             android:layout_height="80sp"
-                            android:src="@drawable/ic_movil_empresa_gris"
+                            android:src="@drawable/ic_movil_empresa"
                             android:id="@+id/im_movil_empresa"
                             />
 
@@ -712,12 +716,12 @@
                             android:text="EMPRESA" />
 
                         <TextView
-                            android:id="@+id/tv_tarifa_empresa"
+                            android:id="@+id/tv_nombre_empresa"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="0 Bs"
+                            android:text="~"
                             android:textColor="@color/colorIcons" />
 
                     </LinearLayout>
@@ -728,21 +732,16 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:paddingRight="20sp"
+                        android:paddingRight="10sp"
                         android:paddingLeft="10sp"
                         >
 
 
                         <ImageView
+                            android:id="@+id/im_movil_grua_torito"
                             android:layout_width="80sp"
                             android:layout_height="80sp"
-                            android:src="@drawable/ic_movil_grua_torito_gris"
-                            android:id="@+id/im_movil_grua_torito"
-                            />
-
-
-
-
+                            android:src="@drawable/ic_movil_grua_torito_gris" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -753,6 +752,42 @@
 
                         <TextView
                             android:id="@+id/tv_tarifa_grua_torito"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="0 Bs"
+                            android:textColor="@color/colorIcons" />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:id="@+id/pedir_movil_aeropuerto_seleccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingRight="20sp"
+                        android:paddingLeft="10sp"
+                        >
+
+
+                        <ImageView
+                            android:id="@+id/im_movil_aeropuerto"
+                            android:layout_width="80sp"
+                            android:layout_height="80sp"
+                            android:src="@drawable/ic_movil_aeropuerto_gris" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="AEROPUERTO" />
+
+                        <TextView
+                            android:id="@+id/tv_tarifa_aeropuerto"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -1044,4 +1079,33 @@
         </LinearLayout>
 
     </LinearLayout>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/fm_empresas"
+        android:visibility="invisible"
+        >
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/lv_lista_empresas"
+            android:layout_margin="17sp"
+            android:padding="10sp"
+            android:background="@color/colorPrimary_light_bajito"
+            >
+
+        </ListView>
+
+    <ImageView
+        android:layout_width="50sp"
+        android:layout_height="50sp"
+        android:id="@+id/im_cerrar"
+        android:src="@mipmap/ic_cerrar"
+        android:layout_gravity="right"
+        />
+
+    </FrameLayout>
 </FrameLayout>
