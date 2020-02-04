@@ -6,6 +6,7 @@ package com.elisoft.aramscruz.menu_otra_direccion;
 // inicio buscar direcciones..
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -180,7 +181,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
 
     String nombre="",direccion="";
     //fin de buscador de ubicacion...
-
+    private RequestQueue queue;
 
     @Override
     protected void onStart() {
@@ -484,6 +485,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
     }
 
 
+    @SuppressLint("RestrictedApi")
     private void enableLocationUpdates() {
 
         locRequest = new LocationRequest();
@@ -1304,6 +1306,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
                     datos_pedido.putExtra("numero",numero);
                     datos_pedido.putExtra("clase_vehiculo",clase_vehiculo);
                     datos_pedido.putExtra("tipo_pedido_empresa",tipo_pedido_empresa);
+                    datos_pedido.putExtra("id_empresa","0");
                     startActivity(datos_pedido);
                 } else {
                     AlertDialog.Builder dialogo1 = new AlertDialog.Builder(this);
@@ -1528,7 +1531,9 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
             jsonParam.put("longitud", String.valueOf(longitud));
 
             String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(

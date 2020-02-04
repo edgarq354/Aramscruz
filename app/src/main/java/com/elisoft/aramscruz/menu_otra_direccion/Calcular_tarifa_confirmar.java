@@ -169,6 +169,8 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
     int clase_vehiculo=1;
 
+    private RequestQueue queue=null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -475,7 +477,10 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             jsonParam.put("longitud_fin", String.valueOf(longitud_fin));
 
             String url=getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa";
-            RequestQueue queue = Volley.newRequestQueue(this);
+
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -591,7 +596,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
 
             String url=getString(R.string.servidor) + "frmCarrera.php?opcion=calcular_tarifa";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -658,7 +665,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             JSONObject jsonParam= new JSONObject();
 
             String url="https://maps.googleapis.com/maps/api/directions/json?origin=" + latitud_inicio + "," + longitud_inicio + "&destination=" + latitud_fin + "," + longitud_fin + "&mode=driving&key=AIzaSyB1h4N5nfpkF1Hg30P88c_1MvH9qG9Tcvs";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -1058,6 +1067,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                     datos_pedido.putExtra("direccion_final",tv_punto_fin.getText().toString());
                     datos_pedido.putExtra("tipo_pedido_empresa",tipo_pedido_empresa);
                     datos_pedido.putExtra("estado_billetera",billetera);
+                    datos_pedido.putExtra("id_empresa",id_empresa);
                     startActivity(datos_pedido);
                 } else {
                     AlertDialog.Builder dialogo1 = new AlertDialog.Builder(this);
@@ -1278,7 +1288,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             jsonParam.put("longitud", String.valueOf(longitud));
 
             String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -1386,7 +1398,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             String v_url= getString(R.string.servidor)+"frmTaxi.php?opcion=get_empresa";
 
             JSONObject jsonParam= new JSONObject();
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(

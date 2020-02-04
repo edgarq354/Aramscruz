@@ -2,6 +2,7 @@ package com.elisoft.aramscruz;
 
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
@@ -135,6 +136,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
     Suceso suceso;
     Marker m_conductor=null;
     int m_conductor_cantida=0;
+    String id_empresa="0";
 
 
     LatLng myPosition=new LatLng(0,0);
@@ -165,9 +167,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
     boolean sw_destroy=false;
 
-    Servicio_pedir_taxi hilo_pedir_taxi;
-    Servicio_pedir_taxi hilo_taxi_obtener_dato;
-    Servicio_pedir_cancelar hilo_taxi_cancelar;
+
 
     int rotacion=0;
 
@@ -175,6 +175,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
     JSONObject rutas=null;
     String direccion_final="";
     String estado_billetera="0";
+
+    private RequestQueue queue=null;
 
     @Override
     public void onBackPressed() {
@@ -283,13 +285,6 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         setSupportActionBar(toolbar);
         mIntentFilter = new IntentFilter();
 
-
-
-
-        hilo_pedir_taxi = new Servicio_pedir_taxi();
-        hilo_taxi_obtener_dato = new Servicio_pedir_taxi();
-        hilo_taxi_cancelar = new Servicio_pedir_cancelar();
-
         try {
             Bundle bundle = getIntent().getExtras();
             latitud = bundle.getDouble("latitud", 0);
@@ -303,6 +298,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             clase_vehiculo=bundle.getInt("clase_vehiculo",1);
             tipo_pedido_empresa=bundle.getInt("tipo_pedido_empresa",0);
             estado_billetera=bundle.getString("estado_billetera","0");
+            id_empresa=bundle.getString("id_empresa","0");
 
             try{
                 numero_casa= Integer.parseInt(bundle.getString("numero","0"));
@@ -508,7 +504,6 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                             if(pedido.getString("id_pedido","").equals("")==false && pedido.getString("id_pedido","0").equals("0")==false) {
                                 try {
                                     tv_mensaje_pedido.setText("Cancelando su solicitud...");
-                                    hilo_taxi_cancelar.cancel(true);
                                     //hilo_taxi_cancelar=new Servicio_pedir_cancelar();
                                     //hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id_usuario,pedido.getString("id_pedido",""));// parametro que recibe el doinbackground
                                     servicio_cancelar_pedido_en_camino( id_usuario,pedido.getString("id_pedido",""));
@@ -585,11 +580,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
       {//cancela el pedido durante la busqueda de un pedido.
           sw_cancelar_pedido_durante_el_pedido=true;
 
-          hilo_taxi_obtener_dato.cancel(true);
-          hilo_pedir_taxi.cancel(true);
-          hilo_taxi_cancelar.cancel(true);
 
-           hilo_taxi_cancelar = new Servicio_pedir_cancelar();
           SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
           SharedPreferences pedido_proceso=getSharedPreferences("pedido_en_proceso",MODE_PRIVATE);
           SharedPreferences usuario = getSharedPreferences("perfil", MODE_PRIVATE);
@@ -608,8 +599,6 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
           }
         if(id_pedido!=0) {
             try {
-                hilo_pedir_taxi.cancel(true);
-                hilo_taxi_obtener_dato.cancel(true);
                 tv_mensaje_pedido.setText("Cancelando su solicitud..");
                 //hilo_taxi_cancelar = new Servicio_pedir_cancelar();
                 //hilo_taxi_cancelar.execute(getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario", "1", id,String.valueOf(id_pedido));// parametro que recibe el doinbackground
@@ -910,7 +899,6 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         try {
 
             tv_mensaje_pedido.setText("Enviando su solicitud a los Taxistas...");
-            hilo_pedir_taxi.cancel(true);
             /*
             hilo_pedir_taxi=new Servicio_pedir_taxi();
             hilo_pedir_taxi.execute(getString(R.string.servidor) + "frmPedido.php?opcion=pedir_taxi", "7",
@@ -942,7 +930,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                     direccion,
                     String.valueOf(latitud_final),
                     String.valueOf(longitud_final),
-                    estado_billetera
+                    estado_billetera,
+                    id_empresa
             );
 
 
@@ -950,907 +939,6 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             mensaje("Por favor active su GPS para realizar pedidos.");
         }
     }
-
-
-    public class Servicio_pedir_taxi extends AsyncTask<String, Integer, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-
-            //verificar si alguien aceptotu pedido..
-            // verificar si tiene un pedido que aun no ha finalizado....
-            //obtener datos del pedido en curso.....
-            if (params[1] == "1") {
-                if(!isCancelled()){
-                    try {
-                        HttpURLConnection urlConn;
-
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
-
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("id_usuario", params[2]);
-                        jsonParam.put("id_pedido", params[3]);
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
-
-                        int respuesta = urlConn.getResponseCode();
-
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            SystemClock.sleep(1500);
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                            if (suceso.getSuceso().equals("1")) {
-                                SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
-                                SharedPreferences.Editor editor = pedido.edit();
-                                editor.putString("id_pedido", "");
-                                editor.commit();
-
-                                devuelve = "6";
-                            } else
-
-                            {
-
-                                devuelve = "7";
-                            }
-
-                        }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            if(sw_cancelar_pedido_durante_el_pedido==false)
-            {
-            if (params[1] == "2") { //mandar JSON metodo post para login
-                if(!isCancelled()) {
-                    try {
-
-                        HttpURLConnection urlConn;
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
-
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("id_pedido", params[2]);
-
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
-
-                        int respuesta = urlConn.getResponseCode();
-
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            SystemClock.sleep(950);
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-
-                            if (suceso.getSuceso().equals("1")) {
-                                JSONArray dato = respuestaJSON.getJSONArray("pedido");
-                                String snombre = dato.getJSONObject(0).getString("nombre_taxi");
-                                String scelular = dato.getJSONObject(0).getString("celular");
-                                String sid_taxi = dato.getJSONObject(0).getString("id_taxi");
-                                String smarca = dato.getJSONObject(0).getString("marca");
-                                String splaca = dato.getJSONObject(0).getString("placa");
-                                String scolor = dato.getJSONObject(0).getString("color");
-                                String snumero_m = dato.getJSONObject(0).getString("numero_movil");
-                                String sid_pedido = dato.getJSONObject(0).getString("id_pedido");
-                                String sempresa=dato.getJSONObject(0).getString("empresa");
-                                String s_id_empresa=dato.getJSONObject(0).getString("id_empresa");
-                                String scalificacion_conductor = dato.getJSONObject(0).getString("calificacion_conductor");
-                                String scalificacion_vehiculo = dato.getJSONObject(0).getString("calificacion_vehiculo");
-                                SharedPreferences pedido = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
-                                SharedPreferences.Editor editar = pedido.edit();
-                                editar.putString("nombre_taxi", snombre);
-                                editar.putString("celular", scelular);
-                                editar.putString("id_taxi", sid_taxi);
-                                editar.putString("marca", smarca);
-                                editar.putString("placa", splaca);
-                                editar.putString("color", scolor);
-                                editar.putString("numero_movil", snumero_m);
-                                editar.putString("latitud", dato.getJSONObject(0).getString("latitud"));
-                                editar.putString("longitud", dato.getJSONObject(0).getString("longitud"));
-                                editar.putString("abordo", dato.getJSONObject(0).getString("abordo"));
-                                editar.putString("estado", dato.getJSONObject(0).getString("estado"));
-                                editar.putString("id_pedido", sid_pedido);
-                                editar.putString("calificacion_conductor", scalificacion_conductor);
-                                editar.putString("calificacion_vehiculo", scalificacion_vehiculo);
-                                editar.putString("empresa",sempresa);
-                                editar.putString("id_empresa",s_id_empresa);
-                                editar.commit();
-
-                                SharedPreferences proceso = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
-                                SharedPreferences.Editor editor = proceso.edit();
-                                editor.putString("id_pedido", "");
-                                editor.commit();
-
-
-                                devuelve = "8";
-                            } else if (suceso.getSuceso().equals("3")) {
-                                devuelve = "500";
-                            } else {
-                                devuelve = "9";
-                            }
-
-                        }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            //enviar pedir taxi..
-            if (params[1] == "7") {
-                if(!isCancelled()) {
-                    try {
-                        HttpURLConnection urlConn;
-
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
-
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("id_usuario", params[2]);
-                        jsonParam.put("latitud", params[3]);
-                        jsonParam.put("longitud", params[4]);
-                        jsonParam.put("nombre", params[5]);
-                        jsonParam.put("indicacion", params[6]);
-                        jsonParam.put("numero_casa", params[7]);
-                        jsonParam.put("imei", params[8]);
-                        jsonParam.put("clase_vehiculo", params[9]);
-                        jsonParam.put("tipo_pedido_empresa", params[10]);
-                        jsonParam.put("direccion", params[11]);
-                        jsonParam.put("latitud_final", params[12]);
-                        jsonParam.put("longitud_final", params[13]);
-                        jsonParam.put("direccion_final", direccion_final);
-                        jsonParam.put("estado_billetera",  params[14]);
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
-
-
-                        int respuesta = urlConn.getResponseCode();
-
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            SystemClock.sleep(1500);
-                             JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                            if (suceso.getSuceso().equals("1")) {
-                                SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
-                                SharedPreferences.Editor editor = pedido.edit();
-                                editor.putString("id_pedido", respuestaJSON.getString("id_pedido"));
-                                editor.commit();
-                                devuelve = "3";
-                            } else
-
-                            {
-
-                                devuelve = "5";
-                            }
-
-                        }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-         //   tv_mensaje_pedido.setText("Buscando el Taxi mas Próximo.");
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-
-
-            if (s.equals("3")) {
-                tv_mensaje_pedido.setText("Esperando la confirmación por el Taxista ...");
-                SharedPreferences prefe = getSharedPreferences("pedido_en_proceso", Context.MODE_PRIVATE);
-
-                try {
-                    int id_pedido =0;
-                    try{
-                        id_pedido = Integer.parseInt(prefe.getString("id_pedido", "0"));
-                    }catch (Exception e)
-                    {
-                           id_pedido=0;
-                    }
-                    if(id_pedido!=0) {
-                        Intent msgIntent = new Intent(Pedido_usuario.this, Servicio_pedir_movil.class);
-                        msgIntent.putExtra("id_pedido", id_pedido);
-                        startService(msgIntent);
-                    }
-                } catch (Exception e) {
-                }
-            } else if (s.equals("5") == true) {
-               mensaje_error_final(suceso.getMensaje());
-
-            } else if (s.equals("8") == true) {
-                //verificar si alguien acepto el pedido.
-
-                Intent intent = new Intent(Pedido_usuario.this, Servicio_pedido.class);
-                intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                startService(intent);
-
-                SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-                tv_nombre.setText(pedido.getString("nombre_taxi",""));
-                tv_marca.setText(pedido.getString("marca",""));
-                tv_placa.setText(pedido.getString("placa",""));
-                tv_modelo.setText(pedido.getString("modelo",""));
-                tv_nombre_empresa.setText(pedido.getString("empresa",""));
-                tv_color.setText(pedido.getString("color",""));
-                tv_numero_movil.setText("Movil Nº:"+pedido.getString("numero_movil","")+" ");
-                tv_cantidad_pedidos.setText("("+pedido.getString("cantidad_pedidos","0")+")");
-/*
-                Intent servicio_contacto = new Intent(Pedido_usuario.this, Servicio_guardar_contacto.class);
-                servicio_contacto.setAction(Constants.ACTION_RUN_ISERVICE);
-                servicio_contacto.putExtra("nombre",pedido.getString("nombre_taxi", ""));
-                servicio_contacto.putExtra("telefono",pedido.getString("celular", ""));
-                startService(servicio_contacto);
-*/
-                try{
-                    float conductor= Float.parseFloat(pedido.getString("calificacion_conductor","0"));
-                    float vehiculo= Float.parseFloat(pedido.getString("calificacion_vehiculo","0"));
-                    rb_calificacion_conductor.setText(""+conductor);
-                }catch (Exception e)
-                {
-
-                }
-
-
-                getImage(pedido.getString("id_taxi",""));
-                getImageVehiculo(pedido.getString("direccion_imagen_adelante",""));
-
-            } else if (s.equals("9") == true) {
-                mensaje_error_final(suceso.getMensaje());
-
-            } else if(s.equals("500")==true)
-            {
-
-            }else if(s.equals("6"))
-            {
-                SharedPreferences pedido2 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
-                String id_pedido=pedido2.getString("id_pedido","");
-
-                SharedPreferences.Editor editor2 = pedido2.edit();
-                editor2.putString("id_pedido", "");
-                editor2.putString("estado", "4");
-                editor2.commit();
-                Intent cancelar_pedido=new Intent(getApplicationContext(),Cancelar_pedido_usuario.class);
-                cancelar_pedido.putExtra("id_pedido",id_pedido);
-                startActivity(cancelar_pedido);
-                finish();
-
-
-            }else if(s.equals("7"))
-            {
-                mensaje_error(suceso.getMensaje());
-            }
-                else {
-              mensaje_error_final("Falla en tu conexión a Internet.Si esta seguro que tiene conexión a internet.Actualice la aplicación.");
-            }
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
-    public class Servicio_pedir_cancelar extends AsyncTask<String, Integer, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-
-            //verificar si alguien aceptotu pedido..
-            // verificar si tiene un pedido que aun no ha finalizado....
-            //obtener datos del pedido en curso.....
-
-
-            //2: CANCELAR EL PEDIDO
-            if (params[1] == "1") {
-                if(!isCancelled()){
-                    try {
-                        HttpURLConnection urlConn;
-
-                        url = new URL(cadena);
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Accept", "application/json");
-                        urlConn.connect();
-
-                        //se crea el objeto JSON
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("id_usuario", params[2]);
-                        jsonParam.put("id_pedido", params[3]);
-                        //Envio los prametro por metodo post
-                        OutputStream os = urlConn.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                        writer.write(jsonParam.toString());
-                        writer.flush();
-                        writer.close();
-
-                        int respuesta = urlConn.getResponseCode();
-
-                        StringBuilder result = new StringBuilder();
-
-                        if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                            String line;
-                            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                            while ((line = br.readLine()) != null) {
-                                result.append(line);
-                            }
-
-                            SystemClock.sleep(1500);
-                            JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                            suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
-                            if (suceso.getSuceso().equals("1")) {
-                                SharedPreferences pedido = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
-                                SharedPreferences.Editor editor = pedido.edit();
-                                editor.putString("id_pedido", "");
-                                editor.commit();
-
-                                devuelve = "6";
-                            } else
-
-                            {
-
-                                devuelve = "7";
-                            }
-
-                        }
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            //   tv_mensaje_pedido.setText("Buscando el Taxi mas Próximo.");
-
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //ocultamos proggress dialog
-            // Log.e("onPostExcute=", "" + s);
-            if(s.equals("500")==true)
-            {
-
-            }else if(s.equals("6"))
-            {
-                SharedPreferences pedido2 = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
-                String id_pedido=pedido2.getString("id_pedido","");
-
-                SharedPreferences.Editor editor2 = pedido2.edit();
-                editor2.putString("id_pedido", "");
-                editor2.putString("estado", "4");
-                editor2.commit();
-                Intent cancelar_pedido=new Intent(getApplicationContext(),Cancelar_pedido_usuario.class);
-                cancelar_pedido.putExtra("id_pedido",id_pedido);
-                startActivity(cancelar_pedido);
-                finish();
-
-
-            }else if(s.equals("7"))
-            {
-                mensaje_error(suceso.getMensaje());
-            }
-            else {
-                mensaje_error_final("Falla en tu conexión a Internet.Si esta seguro que tiene conexión a internet.Actualice la aplicación.");
-            }
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
-
-    public class Servicio extends AsyncTask<String,Integer,String> {
-
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-
-
-            if (params[1] == "1") { //mandar JSON metodo post ENVIAR LA CONFIRMACION DEL LLEGADO DEL MOTISTA.,,,
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_pedido", params[2]);
-                    jsonParam.put("id_usuario", params[3]);
-                    jsonParam.put("usuarios", params[4]);
-
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="10";
-                        } else  {
-                            devuelve = "11";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-//HACE EL CLICK CON LA CONFIRMACION DE QUE LLEGO EL MOTISTA HASTA DONDE ESTA....
-            if (params[1] == "2") { //mandar JSON metodo post ENVIAR LA CONFIRMACION DEL LLEGADO DEL MOTISTA.,,,
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_pedido", params[2]);
-
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="3";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (params[1] == "3") { //ENVIAR PANICO A MIS CONTACTOS
-                try {
-                    HttpURLConnection urlConn;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_usuario", params[2]);
-                    jsonParam.put("id_pedido", params[3]);
-
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            devuelve="5";
-                        } else  {
-                            devuelve = "4";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
-            //obtener datos del pedido en curso.....
-            if (params[1] == "5") { //mandar JSON metodo post para login
-                try {
-                    HttpURLConnection urlConn;
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("id_pedido", params[2]);
-
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
-
-                    int respuesta = urlConn.getResponseCode();
-
-                    StringBuilder result = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        SystemClock.sleep(950);
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (suceso.getSuceso().equals("1")) {
-                            JSONArray dato=respuestaJSON.getJSONArray("pedido");
-                            String snombre=dato.getJSONObject(0).getString("nombre_taxi");
-                            String scelular=dato.getJSONObject(0).getString("celular");
-                            String sid_taxi=dato.getJSONObject(0).getString("id_taxi");
-                            String smarca=dato.getJSONObject(0).getString("marca");
-                            String splaca=dato.getJSONObject(0).getString("placa");
-                            String scolor=dato.getJSONObject(0).getString("color");
-                            String snumero_v=dato.getJSONObject(0).getString("numero_movil");
-                            String sestado=dato.getJSONObject(0).getString("estado");
-                            String sid_pedido=dato.getJSONObject(0).getString("id_pedido");
-                            String sid_empresa=dato.getJSONObject(0).getString("id_empresa");
-                            String sempresa=dato.getJSONObject(0).getString("empresa");
-
-
-                            String scalificacion_conductor=dato.getJSONObject(0).getString("calificacion_conductor");
-                            String scalificacion_vehiculo=dato.getJSONObject(0).getString("calificacion_vehiculo");
-
-                            SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-                            SharedPreferences.Editor editar=pedido.edit();
-                            editar.putString("nombre_taxi",snombre);
-                            editar.putString("celular",scelular);
-                            editar.putString("id_taxi",sid_taxi);
-                            editar.putString("marca",smarca);
-                            editar.putString("placa",splaca);
-                            editar.putString("color",scolor);
-                            editar.putString("numero_movil",snumero_v);
-                            editar.putString("estado",sestado);
-                            editar.putString("latitud",dato.getJSONObject(0).getString("latitud"));
-                            editar.putString("longitud",dato.getJSONObject(0).getString("longitud"));
-                            editar.putString("id_pedido",sid_pedido);
-                            editar.putString("id_empresa",sid_empresa);
-                            editar.putString("empresa",sempresa);
-                            editar.putString("calificacion_conductor", scalificacion_conductor);
-                            editar.putString("calificacion_vehiculo", scalificacion_vehiculo);
-                            editar.commit();
-
-                            devuelve="8";
-                        } else  {
-                            devuelve = "2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
-            pDialog = new ProgressDialog(Pedido_usuario.this);
-            pDialog.setTitle(getString(R.string.app_name));
-            pDialog.setMessage("Autenticando ....");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(true);
-            pDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            try {
-                pDialog.cancel();//ocultamos proggress dialog
-            }catch (Exception e)
-            {
-                Log.e("pedido usuario",e.toString());
-            }
-            // Log.e("onPostExcute=", "" + s);
-             if(s.equals("3"))
-            {   Intent intent = new Intent(getApplicationContext(), Servicio_pedido.class);
-                intent.setAction(Constants.ACTION_RUN_ISERVICE);
-                stopService(intent);
-                eliminar_pedido();
-                mensaje(suceso.getMensaje());
-            }else  if(s.equals("8"))
-             {
-
-                 SharedPreferences pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
-                 tv_nombre.setText(pedido.getString("nombre_taxi",""));
-                 tv_marca.setText(pedido.getString("marca",""));
-                 tv_placa.setText(pedido.getString("placa",""));
-                 tv_color.setText(pedido.getString("color",""));
-                 tv_numero_movil.setText("Movil Nº:"+pedido.getString("numero_movil","")+".");
-                 getImage(pedido.getString("id_taxi",""));
-
-                 try{
-                     float conductor= Float.parseFloat(pedido.getString("calificacion_conductor","0"));
-                     float vehiculo= Float.parseFloat(pedido.getString("calificacion_vehiculo","0"));
-                     rb_calificacion_conductor.setText(""+conductor);
-                 }catch (Exception e)
-                 {
-                 }
-             }else if(s.equals("10"))
-             {
-                 mensaje_error(suceso.getMensaje());
-                alert2.cancel();
-             }else if(s.equals("11"))
-             {
-                 mensaje_error(suceso.getMensaje());
-             }
-            else if(s.equals("2"))
-            {
-                mensaje(suceso.getMensaje());
-                finish();
-            }else if(s.equals("4"))
-             {
-/*                 Servicio hilo_taxi = new Servicio();
-                 SharedPreferences usuario = getSharedPreferences("perfil", MODE_PRIVATE);
-                 String id_usuario = usuario.getString("id_usuario", "");
-
-                 SharedPreferences pedido = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
-                 String id_pedido = pedido.getString("id_pedido", "");
-                  try {
-                     hilo_taxi.execute(getString(R.string.servidor) + "frmCompartir_carrera.php?opcion=enviar_panico", "3", id_usuario,id_pedido);
-                 } catch (Exception e) {
-                 }
-*/
-             }else if(s.equals("5"))
-             {
-                 mensaje(suceso.getMensaje());
-             }
-            else
-            {
-
-                mensaje_error_final("Falla en tu conexión a Internet.");
-            }
-
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
-        }
-
-    }
-
 
 
 ///// SERVICIO VOLLEY
@@ -1866,7 +954,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             jsonParam.put("id_pedido", id_pedido);
             jsonParam.put("token", token);
             String url=getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -1944,6 +1034,146 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
     }
 
+    private void servicio_volley_verificar_si_acepto_pedido_sin_notificacion(String id_pedido) {
+
+        if(sw_cancelar_pedido_durante_el_pedido==false) {
+
+            try {
+                String token = SharedPrefManager.getInstance(this).getDeviceToken();
+
+                JSONObject jsonParam = new JSONObject();
+                jsonParam.put("id_pedido", id_pedido);
+                String url = getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario";
+                if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
+
+
+                JsonObjectRequest myRequest = new JsonObjectRequest(
+                        Request.Method.POST,
+                        url,
+                        jsonParam,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject respuestaJSON) {
+
+                                try {
+                                    suceso = new Suceso(respuestaJSON.getString("suceso"), respuestaJSON.getString("mensaje"));
+
+                                    if (suceso.getSuceso().equals("1")) {
+
+                                        JSONArray dato = respuestaJSON.getJSONArray("pedido");
+                                        String snombre = dato.getJSONObject(0).getString("nombre_taxi");
+                                        String scelular = dato.getJSONObject(0).getString("celular");
+                                        String sid_taxi = dato.getJSONObject(0).getString("id_taxi");
+                                        String smarca = dato.getJSONObject(0).getString("marca");
+                                        String splaca = dato.getJSONObject(0).getString("placa");
+                                        String scolor = dato.getJSONObject(0).getString("color");
+                                        String snumero_m = dato.getJSONObject(0).getString("numero_movil");
+                                        String sid_pedido = dato.getJSONObject(0).getString("id_pedido");
+                                        String sempresa=dato.getJSONObject(0).getString("empresa");
+                                        String s_id_empresa=dato.getJSONObject(0).getString("id_empresa");
+                                        String scalificacion_conductor = dato.getJSONObject(0).getString("calificacion_conductor");
+                                        String scalificacion_vehiculo = dato.getJSONObject(0).getString("calificacion_vehiculo");
+                                        SharedPreferences pedido = getSharedPreferences("ultimo_pedido", MODE_PRIVATE);
+                                        SharedPreferences.Editor editar = pedido.edit();
+                                        editar.putString("nombre_taxi", snombre);
+                                        editar.putString("celular", scelular);
+                                        editar.putString("id_taxi", sid_taxi);
+                                        editar.putString("marca", smarca);
+                                        editar.putString("placa", splaca);
+                                        editar.putString("color", scolor);
+                                        editar.putString("numero_movil", snumero_m);
+                                        editar.putString("latitud", dato.getJSONObject(0).getString("latitud"));
+                                        editar.putString("longitud", dato.getJSONObject(0).getString("longitud"));
+                                        editar.putString("abordo", dato.getJSONObject(0).getString("abordo"));
+                                        editar.putString("estado", dato.getJSONObject(0).getString("estado"));
+                                        editar.putString("id_pedido", sid_pedido);
+                                        editar.putString("calificacion_conductor", scalificacion_conductor);
+                                        editar.putString("calificacion_vehiculo", scalificacion_vehiculo);
+                                        editar.putString("empresa",sempresa);
+                                        editar.putString("id_empresa",s_id_empresa);
+                                        editar.commit();
+
+                                        SharedPreferences proceso = getSharedPreferences("pedido_en_proceso", MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = proceso.edit();
+                                        editor.putString("id_pedido", "");
+                                        editor.commit();
+
+                                        ///////////////////////////////////////
+                                        //    FINAL
+
+                                        Intent intent = new Intent(Pedido_usuario.this, Servicio_pedido.class);
+                                        intent.setAction(Constants.ACTION_RUN_ISERVICE);
+                                        startService(intent);
+
+                                        SharedPreferences s_pedido=getSharedPreferences("ultimo_pedido",MODE_PRIVATE);
+                                        tv_nombre.setText(s_pedido.getString("nombre_taxi",""));
+                                        tv_marca.setText(s_pedido.getString("marca",""));
+                                        tv_placa.setText(s_pedido.getString("placa",""));
+                                        tv_modelo.setText(s_pedido.getString("modelo",""));
+                                        tv_nombre_empresa.setText(s_pedido.getString("empresa",""));
+                                        tv_color.setText(s_pedido.getString("color",""));
+                                        tv_numero_movil.setText("Movil Nº:"+s_pedido.getString("numero_movil","")+" ");
+                                        tv_cantidad_pedidos.setText("("+s_pedido.getString("cantidad_pedidos","0")+")");
+/*
+                Intent servicio_contacto = new Intent(Pedido_usuario.this, Servicio_guardar_contacto.class);
+                servicio_contacto.setAction(Constants.ACTION_RUN_ISERVICE);
+                servicio_contacto.putExtra("nombre",pedido.getString("nombre_taxi", ""));
+                servicio_contacto.putExtra("telefono",pedido.getString("celular", ""));
+                startService(servicio_contacto);
+*/
+                                        try{
+                                            float conductor= Float.parseFloat(s_pedido.getString("calificacion_conductor","0"));
+                                            float vehiculo= Float.parseFloat(s_pedido.getString("calificacion_vehiculo","0"));
+                                            rb_calificacion_conductor.setText(""+conductor);
+                                        }catch (Exception e)
+                                        {
+
+                                        }
+
+
+                                        getImage(s_pedido.getString("id_taxi",""));
+                                        getImageVehiculo(s_pedido.getString("direccion_imagen_adelante",""));
+
+
+                                    } else if (suceso.getSuceso().equals("3")) {
+
+
+                                    } else {
+                                        mensaje_error_final(suceso.getMensaje());
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                    }
+                }
+                ) {
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String> parametros = new HashMap<>();
+                        parametros.put("content-type", "application/json; charset=utf-8");
+                        parametros.put("Authorization", "apikey 849442df8f0536d66de700a73ebca-us17");
+                        parametros.put("Accept", "application/json");
+
+                        return parametros;
+                    }
+                };
+
+
+                queue.add(myRequest);
+
+
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
     private void servicio_cancelar_pedido_sin_aceptar(String id_usuario, String id_pedido) {
 
 
@@ -1955,7 +1185,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             jsonParam.put("id_pedido", id_pedido);
             jsonParam.put("token", token);
             String url=getString(R.string.servidor) + "frmPedido.php?opcion=cancelar_pedido_usuario_sin_aceptar";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -2043,7 +1275,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             jsonParam.put("id_pedido", String.valueOf(id_pedido));
             jsonParam.put("token", token);
             String url=getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_pedido";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -2197,7 +1431,9 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             jsonParam.put("id_usuario", id_usuario);
             jsonParam.put("detalle", detalle);
             String url=getString(R.string.servidor) + "frmPedido.php?opcion=enviar_notificacion_usuario";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -2264,7 +1500,8 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
                                      String direccion,
                                      String latitud_final,
                                      String longitud_final,
-                                     String estado_billetera) {
+                                     String estado_billetera,
+                                     String id_empresa) {
 
         try {
 
@@ -2288,8 +1525,11 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
             jsonParam.put("estado_billetera", estado_billetera);
             jsonParam.put("direccion_final", direccion_final);
             jsonParam.put("token", token);
+            jsonParam.put("id_empresa", id_empresa);
             String url=getString(R.string.servidor) + "frmPedido.php?opcion=pedir_taxi";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -2540,6 +1780,7 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
 
     //INICIO DE SERVICIO DE COORDENADAS..
 
+    @SuppressLint("RestrictedApi")
     private void enableLocationUpdates() {
 
         locRequest = new LocationRequest();
@@ -2876,9 +2117,10 @@ public class Pedido_usuario extends AppCompatActivity implements OnMapReadyCallb
         SharedPreferences prefe = getSharedPreferences("pedido_en_proceso", Context.MODE_PRIVATE);
         try {
             int id_pedido = Integer.parseInt(prefe.getString("id_pedido", ""));
-            hilo_taxi_obtener_dato.cancel(true);
-            hilo_taxi_obtener_dato=new Servicio_pedir_taxi();
-            hilo_taxi_obtener_dato.execute(getString(R.string.servidor) + "frmPedido.php?opcion=verificar_si_acepto_pedido_sin_notificacion", "2", String.valueOf(id_pedido));// parametro que recibe el doinbackground
+            //hilo_taxi_obtener_dato=new Servicio_pedir_taxi();
+            //hilo_taxi_obtener_dato.execute(getString(R.string.servidor) + "frmPedido.php?opcion=verificar_si_acepto_pedido_sin_notificacion", "2",
+              //      String.valueOf(id_pedido));
+            servicio_volley_verificar_si_acepto_pedido_sin_notificacion(String.valueOf(id_pedido));
             tv_mensaje_pedido.setText("Esperando la confirmación por el Taxista ...");
 
 

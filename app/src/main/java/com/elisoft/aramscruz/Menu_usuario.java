@@ -1,6 +1,7 @@
 package com.elisoft.aramscruz;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -247,8 +248,7 @@ public class Menu_usuario extends AppCompatActivity
     int interseccion=0;
 
 
-
-
+    private RequestQueue queue=null;
 
 
     @Override
@@ -476,7 +476,10 @@ public class Menu_usuario extends AppCompatActivity
             JSONObject jsonParam= new JSONObject();
             jsonParam.put("id_usuario", String.valueOf(id_usuario));
             String url=getString(R.string.servidor) + "frmPedido.php?opcion=get_pedido_por_id_usuario";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
+
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -827,7 +830,9 @@ public class Menu_usuario extends AppCompatActivity
             jsonParam.put("longitud",longitud);
             jsonParam.put("token", token);
             String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -909,7 +914,9 @@ public class Menu_usuario extends AppCompatActivity
             jsonParam.put("id_usuario", String.valueOf(id_usuario));
             jsonParam.put("token", token);
             String url=getString(R.string.servidor) + "frm_version.php?opcion=aramscruz_pasajero";
-            RequestQueue queue = Volley.newRequestQueue(this);
+            if (queue == null) {
+                queue = Volley.newRequestQueue(this);
+            }
 
 
             JsonObjectRequest myRequest= new JsonObjectRequest(
@@ -2127,6 +2134,7 @@ SharedPreferences casa=getSharedPreferences(getString(R.string.direccion_casa),M
     }
 
     //INICIO DE SERVICIO DE COORDENADAS.
+    @SuppressLint("RestrictedApi")
     private void enableLocationUpdates() {
 
         locRequest = new LocationRequest();
