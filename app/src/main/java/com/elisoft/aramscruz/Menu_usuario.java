@@ -61,6 +61,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -341,12 +342,15 @@ public class Menu_usuario extends AppCompatActivity
 
         pUbicacion = new ProgressDialog(Menu_usuario.this);
         pUbicacion.setTitle(getString(R.string.app_name));
-        pUbicacion.setMessage("Espere un momento.\nEstamos calculando su ubicación." + Html.
-                fromHtml("<br>Si Tarde demaciado. Porfavor active su <b>GPS</b> y sus <b>Datos de Red</b>."));
+        pUbicacion.setMessage("Espere un momento.Estamos calculando su ubicación.");
         pUbicacion.setIndeterminate(true);
         pUbicacion.setCancelable(false);
-        pUbicacion.show();
 
+        try {
+            pUbicacion.show();
+        }catch (Exception ee){
+
+        }
 
 // localizacion automatica
         //Construcción cliente API Google
@@ -553,7 +557,13 @@ public class Menu_usuario extends AppCompatActivity
                 }
             };
 
+
+            myRequest.setRetryPolicy(new DefaultRetryPolicy(30000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
             queue.add(myRequest);
+
         } catch (Exception e) {
 
         }
@@ -881,6 +891,11 @@ public class Menu_usuario extends AppCompatActivity
                     return  parametros;
                 }
             };
+
+            myRequest.setRetryPolicy(new DefaultRetryPolicy(30000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
             queue.add(myRequest);
 
         } catch (Exception e) {
@@ -1227,6 +1242,10 @@ public class Menu_usuario extends AppCompatActivity
 
 
     }
+
+
+
+
     public void crear_puntos_conductor()
     {
         try {
@@ -2223,7 +2242,7 @@ SharedPreferences casa=getSharedPreferences(getString(R.string.direccion_casa),M
             Location lastLocation =
                     LocationServices.FusedLocationApi.getLastLocation(apiClient);
 
-            updateUI(lastLocation);
+             updateUI(lastLocation);
         }
     }
 

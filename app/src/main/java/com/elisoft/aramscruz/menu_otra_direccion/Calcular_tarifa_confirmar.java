@@ -11,6 +11,7 @@ import android.location.Geocoder;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -30,12 +31,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
+import com.elisoft.aramscruz.AnimatingMarkerHelper;
+
 import com.elisoft.aramscruz.Pedido_usuario;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
@@ -71,7 +76,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,6 +178,59 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     int clase_vehiculo=1;
 
     private RequestQueue queue=null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Marker marker_1=null;
+    Marker marker_2=null;
+    Marker marker_3=null;
+    Marker marker_4=null;
+    Marker marker_5=null;
+    Marker marker_6=null;
+    Marker marker_7=null;
+    Marker marker_8=null;
+    Marker marker_9=null;
+    Marker marker_10=null;
+    String cond_1="";
+    String cond_2="";
+    String cond_3="";
+    String cond_4="";
+    String cond_5="";
+    String cond_6="";
+    String cond_7="";
+    String cond_8="";
+    String cond_9="";
+    String cond_10="";
+
+    String fecha_1="";
+    String fecha_2="";
+    String fecha_3="";
+    String fecha_4="";
+    String fecha_5="";
+    String fecha_6="";
+    String fecha_7="";
+    String fecha_8="";
+    String fecha_9="";
+    String fecha_10="";
+
+    String fecha_ultimo="";
+
+    Handler handle=new Handler();
+    int interseccion=0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -377,6 +438,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         } catch (Exception e) {
 
         }
+        crear_puntos_conductor();
         ver_moviles();
         marcar_ruta();
 
@@ -727,18 +789,23 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         {
             //seleccion
             case R.id.pedir_movil_normal_seleccion:
+                //movil normal
                 seleccionar_movil(1);
                 break;
             case R.id.pedir_movil_lujo_seleccion:
+                //movi de lujo
                 seleccionar_movil(2);
                 break;
             case R.id.pedir_movil_aire_seleccion:
+                //movil con aire acondicionado
                 seleccionar_movil(3);
                 break;
             case R.id.pedir_movil_maletero_seleccion:
+                //movil con maletero
                 seleccionar_movil(4);
                 break;
             case R.id.pedir_moto_seleccion:
+                //moto
                 seleccionar_movil(7);
                 break;
 
@@ -890,6 +957,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                 tv_nombre_empresa.setText("~");
                 break;
         }
+        ver_moviles();
     }
 
     private void solicitar_ahora() {
@@ -1286,8 +1354,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             JSONObject jsonParam= new JSONObject();
             jsonParam.put("latitud", String.valueOf(latitud));
             jsonParam.put("longitud", String.valueOf(longitud));
+            jsonParam.put("clase_vehiculo", String.valueOf(clase_vehiculo));
 
-            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango";
+            String url=getString(R.string.servidor) + "frmTaxi.php?opcion=get_taxi_en_rango_clase_vehiculo";
             if (queue == null) {
                 queue = Volley.newRequestQueue(this);
             }
@@ -1304,13 +1373,19 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                                 suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
 
                                 if (suceso.getSuceso().equals("1")) {
-                                    puntos_taxi = respuestaJSON.getJSONArray("lista");
+                                    puntos_taxi = respuestaJSON.getJSONArray("taxi");
                                     //final
                                     sw_ver_taxi_cerca=false;
                                     agregar_en_mapa_ubicaciones_de_taxi();
 
                                 } else  {
                                     sw_ver_taxi_cerca=false;
+
+                                    Date date = new Date();
+                                    DateFormat hourdateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+                                    fecha_ultimo=hourdateFormat.format(date);
+
+                                    ocultar_conductores_no_activos();
                                     ver_moviles();
                                 }
                             } catch (JSONException e) {
@@ -1337,6 +1412,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             };
 
 
+            myRequest.setRetryPolicy(new DefaultRetryPolicy(30000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
             queue.add(myRequest);
         } catch (Exception e) {
@@ -1352,45 +1430,913 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                 double lat = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("latitud"));
                 double lon = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("longitud"));
                 String distancia= puntos_taxi.getJSONObject(i).getString("distancia");
+                String id= puntos_taxi.getJSONObject(i).getString("ci");
+                String fecha= puntos_taxi.getJSONObject(i).getString("fecha");
+                fecha_ultimo=fecha;
+                int moto=Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
 
-                int moto= Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
-                    cargar_puntos_movil(lat, lon,rotacion,distancia,moto);
+                cargar_puntos_movil(lat, lon, rotacion, distancia, id, fecha,moto);
 
             }
+
+            for (int i = 0; i < puntos_taxi.length(); i++) {
+                int rotacion = Integer.parseInt(puntos_taxi.getJSONObject(i).getString("rotacion"));
+                double lat = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("latitud"));
+                double lon = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("longitud"));
+                String distancia= puntos_taxi.getJSONObject(i).getString("distancia");
+                String id= puntos_taxi.getJSONObject(i).getString("ci");
+                String fecha= puntos_taxi.getJSONObject(i).getString("fecha");
+
+                int moto=Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
+
+                cargar_puntos_movil_segundo(lat, lon,rotacion,distancia,id,fecha,moto);
+
+
+            }
+
+
+            ocultar_conductores_no_activos();
+
+
         } catch (Exception e) {
 
         }
-        //ver_moviles();
+
+
+
+
+        interseccion=0;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (interseccion<6)
+                {
+                    interseccion=interseccion+1;
+                    if(interseccion>=4) {
+                        interseccion = 7;
+                        handle.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                ver_moviles();
+                            }
+
+
+                        });
+                    }
+                    try{
+                        Thread.sleep(1000);
+                    }catch (InterruptedException e)
+                    {
+                        ver_moviles();
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+        }).start();
     }
-    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia, int moto) {
+    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia,String id,String fecha,int moto) {
+
+      /*
         try {
 
             LatLng punto = new LatLng(lat, lon);
+if(clase_vehiculo==1) {
+    if (moto == 0) {
+        mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                .position(punto)
+                .anchor((float) 0.5, (float) 0.8)
+                .flat(true)
+                .rotation(rotacion)
+                .title("Mtrs. " + distancia));
+    } else {
+        mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker))
+                .position(punto)
+                .anchor((float) 0.5, (float) 0.8)
+                .flat(true)
+                .rotation(rotacion)
+                .title("Mtrs. " + distancia));
+    }
 
-            if(moto==0){
-                mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
-                        .position(punto)
-                        .anchor((float) 0.5, (float) 0.8)
-                        .flat(true)
-                        .rotation(rotacion)
-                        .title("Mtrs. " + distancia));
-            }else{
-                mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker))
-                        .position(punto)
-                        .anchor((float) 0.5, (float) 0.8)
-                        .flat(true)
-                        .rotation(rotacion)
-                        .title("Mtrs. " + distancia));
-            }
+}else if(clase_vehiculo==2)
+{
+    //movil de lujo
+    mMap.addMarker(new MarkerOptions()
+            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker))
+            .position(punto)
+            .anchor((float) 0.5, (float) 0.8)
+            .flat(true)
+            .rotation(rotacion)
+            .title("Mtrs. " + distancia));
+}else if(clase_vehiculo==4)
+{
+    //maletero.
+    mMap.addMarker(new MarkerOptions()
+            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker))
+            .position(punto)
+            .anchor((float) 0.5, (float) 0.8)
+            .flat(true)
+            .rotation(rotacion)
+            .title("Mtrs. " + distancia));
+}else if(clase_vehiculo==7)
+{
+    //moto
+    mMap.addMarker(new MarkerOptions()
+            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker))
+            .position(punto)
+            .anchor((float) 0.5, (float) 0.8)
+            .flat(true)
+            .rotation(rotacion)
+            .title("Mtrs. " + distancia));
+}else if(clase_vehiculo==15)
+{
+    //camioncito
+    mMap.addMarker(new MarkerOptions()
+            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker))
+            .position(punto)
+            .anchor((float) 0.5, (float) 0.8)
+            .flat(true)
+            .rotation(rotacion)
+            .title("Mtrs. " + distancia));
+}else if(clase_vehiculo==18)
+{
+    //grua
+    mMap.addMarker(new MarkerOptions()
+            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker))
+            .position(punto)
+            .anchor((float) 0.5, (float) 0.8)
+            .flat(true)
+            .rotation(rotacion)
+            .title("Mtrs. " + distancia));
+}
+
+
 
 
         } catch (Exception e) {
 
         }
 
+        */
+
+
+
+
+        LatLng ubicacion=new LatLng(lat,lon);
+
+        if(id.equals(cond_1)){
+            fecha_1=fecha;
+            marker_1.setVisible(true);
+            marker_1.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_1, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_2)){
+            fecha_2=fecha;
+            marker_2.setVisible(true);
+            marker_2.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_2, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else  if(id.equals(cond_3)){
+            fecha_3=fecha;
+            marker_3.setVisible(true);
+            marker_3.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_3, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_4)){
+            fecha_4=fecha;
+            marker_4.setVisible(true);
+            marker_4.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_4, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_5)){
+            fecha_5=fecha;
+            marker_5.setVisible(true);
+            marker_5.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_5, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+
+        }
+        else if(id.equals(cond_6)){
+            fecha_6=fecha;
+            marker_6.setVisible(true);
+            marker_6.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_6, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_7)){
+            fecha_7=fecha;
+            marker_7.setVisible(true);
+            marker_7.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_7, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_8)){
+            fecha_8=fecha;
+            marker_8.setVisible(true);
+            marker_8.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_8, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_9)){
+            fecha_9=fecha;
+            marker_9.setVisible(true);
+            marker_9.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_9, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(id.equals(cond_10)){
+            fecha_10=fecha;
+            marker_10.setVisible(true);
+            marker_10.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_10, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+
     }
+
+
+    public void cargar_puntos_movil_segundo( double lat,double lon,int rotacion,String distancia,String id,String fecha, int moto)
+    {
+
+
+        LatLng ubicacion=new LatLng(lat,lon);
+
+        if(cond_1.equals(id)&&fecha_1.equals(fecha_ultimo))
+        {
+
+        }else if(cond_2.equals(id)&&fecha_2.equals(fecha_ultimo))
+        {
+
+        }else if(cond_3.equals(id)&&fecha_3.equals(fecha_ultimo))
+        {
+
+        }else if(cond_4.equals(id)&&fecha_4.equals(fecha_ultimo))
+        {
+
+        }else if(cond_5.equals(id)&&fecha_5.equals(fecha_ultimo))
+        {
+
+        }else if(cond_6.equals(id)&&fecha_6.equals(fecha_ultimo))
+        {
+
+        }else if(cond_7.equals(id)&&fecha_7.equals(fecha_ultimo))
+        {
+
+        }else if(cond_8.equals(id)&&fecha_8.equals(fecha_ultimo))
+        {
+
+        }else if(cond_9.equals(id)&&fecha_9.equals(fecha_ultimo))
+        {
+
+        }else if(cond_10.equals(id)&&fecha_10.equals(fecha_ultimo))
+        {
+
+        }else if(fecha_1.equals(fecha_ultimo)==false){
+            fecha_1=fecha;
+            cond_1=id;
+            marker_1.setVisible(true);
+            marker_1.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_1, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_2.equals(fecha_ultimo)==false){
+            fecha_2=fecha;
+            cond_2=id;
+            marker_2.setVisible(true);
+            marker_2.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_2, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else  if(fecha_3.equals(fecha_ultimo)==false){
+            fecha_3=fecha;
+            cond_3=id;
+            marker_3.setVisible(true);
+            marker_3.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_3, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_4.equals(fecha_ultimo)==false){
+            fecha_4=fecha;
+            cond_4=id;
+            marker_4.setVisible(true);
+            marker_4.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_4, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_5.equals(fecha_ultimo)==false){
+            fecha_5=fecha;
+            cond_5=id;
+            marker_5.setVisible(true);
+            marker_5.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_5, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_6.equals(fecha_ultimo)==false){
+            fecha_6=fecha;
+            cond_6=id;
+            marker_6.setVisible(true);
+            marker_6.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_6, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_7.equals(fecha_ultimo)==false){
+            fecha_7=fecha;
+            cond_7=id;
+            marker_7.setVisible(true);
+            marker_7.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_7, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_8.equals(fecha_ultimo)==false){
+            fecha_8=fecha;
+            cond_8=id;
+            marker_8.setVisible(true);
+            marker_8.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_8, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_9.equals(fecha_ultimo)==false){
+            fecha_9=fecha;
+            cond_9=id;
+            marker_9.setVisible(true);
+            marker_9.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_9, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+        else if(fecha_10.equals(fecha_ultimo)==false){
+            fecha_10=fecha;
+            cond_10=id;
+            marker_10.setVisible(true);
+            marker_10.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_10, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(clase_vehiculo==1)
+            {
+                //movil de lujo
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else if(clase_vehiculo==2)
+            {
+                //movil de lujo
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_lujo_marker));
+            }else if(clase_vehiculo==4)
+            {
+                //maletero.
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_vagoneta_marker));
+            }else if(clase_vehiculo==7)
+            {
+                //moto
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }else if(clase_vehiculo==15)
+            {
+                //camioncito
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }else if(clase_vehiculo==18)
+            {
+                //grua
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_camioncito_marker));
+            }
+        }
+
+    }
+
+
+
+
+    public void ocultar_conductores_no_activos()
+    {
+        if(fecha_1.equals(fecha_ultimo)==false){
+            marker_1.setVisible(false);
+        }
+        if(fecha_2.equals(fecha_ultimo)==false){
+            marker_2.setVisible(false);
+        }
+        if(fecha_3.equals(fecha_ultimo)==false){
+            marker_3.setVisible(false);
+        }
+        if(fecha_4.equals(fecha_ultimo)==false){
+            marker_4.setVisible(false);
+        }
+        if(fecha_5.equals(fecha_ultimo)==false){
+            marker_5.setVisible(false);
+        }
+        if(fecha_6.equals(fecha_ultimo)==false){
+            marker_6.setVisible(false);
+        }
+        if(fecha_7.equals(fecha_ultimo)==false){
+            marker_7.setVisible(false);
+        }
+        if(fecha_8.equals(fecha_ultimo)==false){
+            marker_8.setVisible(false);
+        }
+        if(fecha_9.equals(fecha_ultimo)==false){
+            marker_9.setVisible(false);
+        }
+        if(fecha_10.equals(fecha_ultimo)==false){
+            marker_10.setVisible(false);
+        }
+
+    }
+
+
 
     private void servicio_volley_lista_empresa() {
 
@@ -1483,6 +2429,87 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     }
 
 
+    public void crear_puntos_conductor()
+    {
+        try {
+            LatLng punto = new LatLng(latitud_inicio,longitud_inicio);
+            marker_1=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_2=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_3=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_4=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_5=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_6=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_7=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_8=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_9=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_10=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 
 }
 

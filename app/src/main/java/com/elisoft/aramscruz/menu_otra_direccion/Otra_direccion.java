@@ -91,6 +91,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -118,6 +119,66 @@ import java.util.Map;
 public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallback,View.OnClickListener, GoogleApiClient.OnConnectionFailedListener,
         GoogleApiClient.ConnectionCallbacks,
         LocationListener {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Marker marker_1=null;
+    Marker marker_2=null;
+    Marker marker_3=null;
+    Marker marker_4=null;
+    Marker marker_5=null;
+    Marker marker_6=null;
+    Marker marker_7=null;
+    Marker marker_8=null;
+    Marker marker_9=null;
+    Marker marker_10=null;
+    String cond_1="";
+    String cond_2="";
+    String cond_3="";
+    String cond_4="";
+    String cond_5="";
+    String cond_6="";
+    String cond_7="";
+    String cond_8="";
+    String cond_9="";
+    String cond_10="";
+
+    String fecha_1="";
+    String fecha_2="";
+    String fecha_3="";
+    String fecha_4="";
+    String fecha_5="";
+    String fecha_6="";
+    String fecha_7="";
+    String fecha_8="";
+    String fecha_9="";
+    String fecha_10="";
+
+    String fecha_ultimo="";
+
+    Handler handle=new Handler();
+    int interseccion=0;
+
+
+
+
+
+
+
+
+
 
 
     boolean sw_ver_taxi_cerca = false;
@@ -189,6 +250,7 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
             sw_acercar_a_mi_ubicacion = 0;
         }
         boolean sw=estaConectado();
+
         super.onStart();
     }
     @Override
@@ -613,6 +675,8 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
                             .build();
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     sw_acercar_a_mi_ubicacion = 1;
+                    mMap.clear();
+                    crear_puntos_conductor();
                     ver_moviles();
                 } catch (Exception e) {
                     Log.e("gps_primera",e.toString());
@@ -1721,123 +1785,111 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
                 double lat = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("latitud"));
                 double lon = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("longitud"));
                 String distancia= puntos_taxi.getJSONObject(i).getString("distancia");
+                String id= puntos_taxi.getJSONObject(i).getString("ci");
+                String fecha= puntos_taxi.getJSONObject(i).getString("fecha");
+                fecha_ultimo=fecha;
+                int moto=Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
 
-                int moto= Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
-                cargar_puntos_movil(lat, lon,rotacion,distancia,moto);
-
+                cargar_puntos_movil(lat, lon, rotacion, distancia, id, fecha,moto);
             }
-        } catch (Exception e) {
 
-        }
-        ver_moviles();
-    }
+            for (int i = 0; i < puntos_taxi.length(); i++) {
+                int rotacion = Integer.parseInt(puntos_taxi.getJSONObject(i).getString("rotacion"));
+                double lat = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("latitud"));
+                double lon = Double.parseDouble(puntos_taxi.getJSONObject(i).getString("longitud"));
+                String distancia= puntos_taxi.getJSONObject(i).getString("distancia");
+                String id= puntos_taxi.getJSONObject(i).getString("ci");
+                String fecha= puntos_taxi.getJSONObject(i).getString("fecha");
+
+                int moto=Integer.parseInt(puntos_taxi.getJSONObject(i).getString("moto"));
+
+                cargar_puntos_movil_segundo(lat, lon,rotacion,distancia,id,fecha,moto);
 
 
-    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia, int moto) {
-        try {
-
-            LatLng punto = new LatLng(lat, lon);
-
-            if(moto==0){
-                mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
-                        .position(punto)
-                        .anchor((float) 0.5, (float) 0.8)
-                        .flat(true)
-                        .rotation(rotacion)
-                        .title("Mtrs. " + distancia));
-            }else{
-                mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker))
-                        .position(punto)
-                        .anchor((float) 0.5, (float) 0.8)
-                        .flat(true)
-                        .rotation(rotacion)
-                        .title("Mtrs. " + distancia));
             }
 
 
+            ocultar_conductores_no_activos();
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
 
+
+
+
+
+
+        interseccion=0;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (interseccion<6)
+                {
+                    interseccion=interseccion+1;
+                    if(interseccion>=4) {
+                        interseccion = 7;
+                        handle.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                ver_moviles();
+                            }
+
+
+                        });
+                    }
+                    try{
+                        Thread.sleep(1000);
+                    }catch (InterruptedException e)
+                    {
+                        ver_moviles();
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+        }).start();
     }
 
-
-
-    public void verificar_permiso_imei()
+    public void ocultar_conductores_no_activos()
     {
-        final String[] PERMISSIONS = { Manifest.permission.INTERNET,
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.ACCESS_NETWORK_STATE };
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_STATE)) {
-            //YA LO CANCELE Y VOUELVO A PERDIR EL PERMISO.
-
-            AlertDialog.Builder dialogo1 = new AlertDialog.Builder(this);
-            dialogo1.setTitle("Atención!");
-            dialogo1.setMessage("Debes otorgar permisos de acceso al ID del Telefono por tema de Seguridad.");
-            dialogo1.setCancelable(false);
-            dialogo1.setPositiveButton("Solicitar permiso", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogo1, int id) {
-                    dialogo1.cancel();
-                    ActivityCompat.requestPermissions(Otra_direccion.this,
-                            PERMISSIONS,
-                            1);
-
-                }
-            });
-            dialogo1.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogo1, int id) {
-                    dialogo1.cancel();
-
-                }
-            });
-            dialogo1.show();
-        } else {
-            ActivityCompat.requestPermissions(Otra_direccion.this,
-                    PERMISSIONS,
-                    1);
+        if(fecha_1.equals(fecha_ultimo)==false){
+            marker_1.setVisible(false);
         }
+        if(fecha_2.equals(fecha_ultimo)==false){
+            marker_2.setVisible(false);
+        }
+        if(fecha_3.equals(fecha_ultimo)==false){
+            marker_3.setVisible(false);
+        }
+        if(fecha_4.equals(fecha_ultimo)==false){
+            marker_4.setVisible(false);
+        }
+        if(fecha_5.equals(fecha_ultimo)==false){
+            marker_5.setVisible(false);
+        }
+        if(fecha_6.equals(fecha_ultimo)==false){
+            marker_6.setVisible(false);
+        }
+        if(fecha_7.equals(fecha_ultimo)==false){
+            marker_7.setVisible(false);
+        }
+        if(fecha_8.equals(fecha_ultimo)==false){
+            marker_8.setVisible(false);
+        }
+        if(fecha_9.equals(fecha_ultimo)==false){
+            marker_9.setVisible(false);
+        }
+        if(fecha_10.equals(fecha_ultimo)==false){
+            marker_10.setVisible(false);
+        }
+
     }
 
 
-    public void verificar_permiso_sms()
-    {
-        final String[] SMS_PERMISSIONS = { Manifest.permission.INTERNET,
-                Manifest.permission.READ_SMS,
-                Manifest.permission.RECEIVE_SMS,
-                Manifest.permission.ACCESS_NETWORK_STATE };
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_SMS)) {
-            //YA LO CANCELE Y VOUELVO A PERDIR EL PERMISO.
 
-            AlertDialog.Builder dialogo1 = new AlertDialog.Builder(this);
-            dialogo1.setTitle("Atención!");
-            dialogo1.setMessage("Debes otorgar permisos de SMS para realizar la autenficación");
-            dialogo1.setCancelable(false);
-            dialogo1.setPositiveButton("Solicitar permiso", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogo1, int id) {
-                    dialogo1.cancel();
-                    ActivityCompat.requestPermissions(Otra_direccion.this,
-                            SMS_PERMISSIONS,
-                            1);
-
-                }
-            });
-            dialogo1.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogo1, int id) {
-                    dialogo1.cancel();
-
-                }
-            });
-            dialogo1.show();
-        } else {
-            ActivityCompat.requestPermissions(Otra_direccion.this,
-                    SMS_PERMISSIONS,
-                    1);
-        }
-    }
     public void verificar_permiso_camara()
     {
         final String[] CAMERA_PERMISSIONS = { Manifest.permission.INTERNET,
@@ -1945,6 +1997,406 @@ public class Otra_direccion extends AppCompatActivity implements OnMapReadyCallb
         }
     }
 
+
+
+
+
+    public void crear_puntos_conductor()
+    {
+        try {
+            LatLng punto = myPosition;
+            marker_1=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_2=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_3=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_4=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_5=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_6=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_7=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_8=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_9=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+            marker_10=mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker))
+                    .position(punto)
+                    .anchor((float)0.5,(float)0.8)
+                    .flat(true)
+                    .rotation(0)
+                    .visible(false));
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void cargar_puntos_movil( double lat,double lon,int rotacion,String distancia,String id,String fecha,int moto)
+    {
+
+
+        LatLng ubicacion=new LatLng(lat,lon);
+
+        if(id.equals(cond_1)){
+            fecha_1=fecha;
+            marker_1.setVisible(true);
+            marker_1.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_1, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_2)){
+            fecha_2=fecha;
+            marker_2.setVisible(true);
+            marker_2.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_2, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else  if(id.equals(cond_3)){
+            fecha_3=fecha;
+            marker_3.setVisible(true);
+            marker_3.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_3, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_4)){
+            fecha_4=fecha;
+            marker_4.setVisible(true);
+            marker_4.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_4, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_5)){
+            fecha_5=fecha;
+            marker_5.setVisible(true);
+            marker_5.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_5, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+
+        }
+        else if(id.equals(cond_6)){
+            fecha_6=fecha;
+            marker_6.setVisible(true);
+            marker_6.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_6, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_7)){
+            fecha_7=fecha;
+            marker_7.setVisible(true);
+            marker_7.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_7, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_8)){
+            fecha_8=fecha;
+            marker_8.setVisible(true);
+            marker_8.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_8, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_9)){
+            fecha_9=fecha;
+            marker_9.setVisible(true);
+            marker_9.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_9, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(id.equals(cond_10)){
+            fecha_10=fecha;
+            marker_10.setVisible(true);
+            marker_10.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_10, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+
+    }
+
+    public void cargar_puntos_movil_segundo( double lat,double lon,int rotacion,String distancia,String id,String fecha, int moto)
+    {
+
+
+        LatLng ubicacion=new LatLng(lat,lon);
+
+        if(cond_1.equals(id)&&fecha_1.equals(fecha_ultimo))
+        {
+
+        }else if(cond_2.equals(id)&&fecha_2.equals(fecha_ultimo))
+        {
+
+        }else if(cond_3.equals(id)&&fecha_3.equals(fecha_ultimo))
+        {
+
+        }else if(cond_4.equals(id)&&fecha_4.equals(fecha_ultimo))
+        {
+
+        }else if(cond_5.equals(id)&&fecha_5.equals(fecha_ultimo))
+        {
+
+        }else if(cond_6.equals(id)&&fecha_6.equals(fecha_ultimo))
+        {
+
+        }else if(cond_7.equals(id)&&fecha_7.equals(fecha_ultimo))
+        {
+
+        }else if(cond_8.equals(id)&&fecha_8.equals(fecha_ultimo))
+        {
+
+        }else if(cond_9.equals(id)&&fecha_9.equals(fecha_ultimo))
+        {
+
+        }else if(cond_10.equals(id)&&fecha_10.equals(fecha_ultimo))
+        {
+
+        }else if(fecha_1.equals(fecha_ultimo)==false){
+            fecha_1=fecha;
+            cond_1=id;
+            marker_1.setVisible(true);
+            marker_1.setRotation(rotacion);
+            MarkerAnimation.animateMarkerToGB(marker_1, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_1.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_2.equals(fecha_ultimo)==false){
+            fecha_2=fecha;
+            cond_2=id;
+            marker_2.setVisible(true);
+            marker_2.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_2, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_2.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else  if(fecha_3.equals(fecha_ultimo)==false){
+            fecha_3=fecha;
+            cond_3=id;
+            marker_3.setVisible(true);
+            marker_3.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_3, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_3.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_4.equals(fecha_ultimo)==false){
+            fecha_4=fecha;
+            cond_4=id;
+            marker_4.setVisible(true);
+            marker_4.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_4, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_4.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_5.equals(fecha_ultimo)==false){
+            fecha_5=fecha;
+            cond_5=id;
+            marker_5.setVisible(true);
+            marker_5.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_5, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_5.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_6.equals(fecha_ultimo)==false){
+            fecha_6=fecha;
+            cond_6=id;
+            marker_6.setVisible(true);
+            marker_6.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_6, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_6.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_7.equals(fecha_ultimo)==false){
+            fecha_7=fecha;
+            cond_7=id;
+            marker_7.setVisible(true);
+            marker_7.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_7, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_7.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_8.equals(fecha_ultimo)==false){
+            fecha_8=fecha;
+            cond_8=id;
+            marker_8.setVisible(true);
+            marker_8.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_8, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_8.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_9.equals(fecha_ultimo)==false){
+            fecha_9=fecha;
+            cond_9=id;
+            marker_9.setVisible(true);
+            marker_9.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_9, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_9.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+        else if(fecha_10.equals(fecha_ultimo)==false){
+            fecha_10=fecha;
+            cond_10=id;
+            marker_10.setVisible(true);
+            marker_10.setRotation(rotacion);
+
+            MarkerAnimation.animateMarkerToGB(marker_10, ubicacion, new LatLngInterpolator.Spherical());
+
+            if(moto==0){
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_car_marker));
+            }else{
+                marker_10.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_mot_marker));
+            }
+        }
+
+    }
 
 
 
