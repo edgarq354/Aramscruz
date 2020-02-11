@@ -75,10 +75,10 @@ public class MapAnimator {
       backgroundPolyline.remove();
     }
 
-    PolylineOptions optionsBackground = new PolylineOptions().add(bangaloreRoute.get(0)).color(GREY).width(5);
+    PolylineOptions optionsBackground = new PolylineOptions().add(bangaloreRoute.get(0)).color(GREY).width(15);
     backgroundPolyline = googleMap.addPolyline(optionsBackground);
 
-    optionsForeground = new PolylineOptions().add(bangaloreRoute.get(0)).color(Color.BLACK).width(5);
+    optionsForeground = new PolylineOptions().add(bangaloreRoute.get(0)).color(Color.BLUE).width(15);
     foregroundPolyline = googleMap.addPolyline(optionsForeground);
 
     final ValueAnimator percentageCompletion = ValueAnimator.ofInt(0, 100);
@@ -120,7 +120,7 @@ public class MapAnimator {
       }
     });
 
-    ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), GREY, Color.BLACK);
+    ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), GREY, Color.BLUE);
     colorAnimation.setInterpolator(new AccelerateInterpolator());
     colorAnimation.setDuration(1200); // milliseconds
 

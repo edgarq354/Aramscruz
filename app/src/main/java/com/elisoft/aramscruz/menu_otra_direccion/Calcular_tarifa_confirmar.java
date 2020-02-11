@@ -234,7 +234,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     int interseccion=0;
 
 
-
+    //INICIO MARCAR RUTA
     private List<LatLng> bangaloreRoute;
     //FIN MARCAR RUTA
 
