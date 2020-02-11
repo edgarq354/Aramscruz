@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -39,9 +40,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
-import com.elisoft.aramscruz.AnimatingMarkerHelper;
+
 
 import com.elisoft.aramscruz.Pedido_usuario;
+import com.elisoft.aramscruz.Punto;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
 import com.elisoft.aramscruz.empresa.CEmpresa;
@@ -232,6 +234,10 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
     int interseccion=0;
 
 
+
+    private List<LatLng> bangaloreRoute;
+    //FIN MARCAR RUTA
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -389,6 +395,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
         });
 
         servicio_volley_lista_empresa();
+
+        //MARCAR RUTA
+
     }
 
     public void solicitar_tarifa()
@@ -1222,6 +1231,19 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
     public void dibujar_ruta(JSONObject jObject){
 
+        //DIBUJAR ANIMACION
+        //createRoute();
+       // startAnim();
+
+
+
+        if (bangaloreRoute == null) {
+            bangaloreRoute = new ArrayList<>();
+        } else {
+            bangaloreRoute.clear();
+        }
+
+
         String tiempo="";
         JSONArray jRoutes = null;
         JSONArray jLegs = null;
@@ -1252,6 +1274,9 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
                             punto = new LatLng(lat, lon);
                             polylineOptions.add(punto);
 
+                            //PUNTO AGREGADO
+                            bangaloreRoute.add(punto);
+
                         }
                     }
 
@@ -1262,7 +1287,7 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
 
 
 
-            mMap.addPolyline(polylineOptions.width(8).color(Color.BLACK));
+        //    mMap.addPolyline(polylineOptions.width(8).color(Color.BLACK));
 
         } catch (JSONException e) {
             try {
@@ -1281,6 +1306,17 @@ public class Calcular_tarifa_confirmar extends AppCompatActivity implements OnMa
             dibujar_ruta(rutas);
         }
 
+
+        startAnim();
+    }
+
+
+    private void startAnim() {
+        if (mMap != null) {
+            MapAnimator.getInstance().animateRoute(mMap, bangaloreRoute);
+        } else {
+            Toast.makeText(getApplicationContext(), "Map not ready", Toast.LENGTH_LONG).show();
+        }
     }
 
     private List<LatLng> decodePoly(String encoded) {
@@ -2509,6 +2545,43 @@ if(clase_vehiculo==1) {
         {
             e.printStackTrace();
         }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void createRoute() {
+        if (bangaloreRoute == null) {
+            bangaloreRoute = new ArrayList<>();
+        } else {
+            bangaloreRoute.clear();
+        }
+
+        bangaloreRoute.add(new LatLng(-17.3408353,-63.2621419));
+        bangaloreRoute.add(new LatLng(12.922294704121231, 77.61939525604248));
+        bangaloreRoute.add(new LatLng(12.924637088068884, 77.6180648803711));
+        bangaloreRoute.add(new LatLng(12.925557304321782, 77.6200819015503));
+        bangaloreRoute.add(new LatLng(12.927104933097784, 77.62081146240234));
+        bangaloreRoute.add(new LatLng(12.928234277770715, 77.62111186981201));
+        bangaloreRoute.add(new LatLng(12.92990737159723, 77.6218843460083));
+        bangaloreRoute.add(new LatLng(12.9337554448302, 77.62342929840088));
+        bangaloreRoute.add(new LatLng(12.9346338010532, 77.62390136718749));
+        bangaloreRoute.add(new LatLng(12.935177543831987, 77.62437343597412));
+        bangaloreRoute.add(new LatLng(12.934487408564122, 77.62561798095703));
+        bangaloreRoute.add(new LatLng(12.934320102757125, 77.62589693069457));
+        bangaloreRoute.add(new LatLng(12.933860011209374, 77.62572526931763));
+        bangaloreRoute.add(new LatLng(12.934550148212828, 77.62460947036743));
+        bangaloreRoute.add(new LatLng(12.933379005502244, 77.62398719787598));
+        bangaloreRoute.add(new LatLng(12.933065305628435, 77.62390136718749));
     }
 
 }
