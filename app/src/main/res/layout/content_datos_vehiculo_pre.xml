@@ -249,34 +249,68 @@
                 android:textColor="@color/colorPrimaryDark"
                 />
 
-            <RadioGroup
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 >
-                <RadioButton
+                <CheckBox
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/rb_movil"
                     android:checked="true"
-                    android:text="VEHÍCULO"
+                    android:text="MOVIL NORMAL"
                     android:layout_weight="1"
                     />
-                <RadioButton
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rb_maletero_libre"
+                    android:text="VAGENETA"
+                    android:layout_weight="1"
+                    />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rb_lujo"
+                    android:text="LUJO"
+                    android:layout_weight="1"
+                    />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rb_camioncito"
+                    android:text="CAMIONCITO"
+                    android:layout_weight="1"
+                    />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rb_grua"
+                    android:text="GRUA"
+                    android:layout_weight="1"
+                    />
+
+                <CheckBox
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/rb_moto"
                     android:text="MOTO"
                     android:layout_weight="1"
                     />
-                <RadioButton
+                <CheckBox
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="1sp"
                     android:id="@+id/rb_moto_torito"
                     android:text="MOTO TORITO"
                     android:layout_weight="1"
+                    android:visibility="invisible"
                     />
-            </RadioGroup>
+            </LinearLayout>
 
 
         </LinearLayout>

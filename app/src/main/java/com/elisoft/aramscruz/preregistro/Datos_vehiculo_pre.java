@@ -11,11 +11,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.elisoft.aramscruz.R;
 import com.elisoft.aramscruz.Suceso;
 
@@ -33,6 +41,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnClickListener{
 
@@ -55,7 +65,14 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
     String direccion_imagen_licencia_2="";
 
 
-    RadioButton rb_movil,rb_moto,rb_moto_torito;
+    CheckBox
+            rb_movil,
+            rb_maletero_libre,
+            rb_lujo,
+            rb_camioncito,
+            rb_grua,
+            rb_moto,
+            rb_moto_torito;
 
 
     String v_placa="";
@@ -73,8 +90,14 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
     String v_paterno_pro= "";
     String v_materno_pro= "";
     String v_expedido_pro= "";
-    String v_moto_pro= "";
-    String v_movil_pro= "";
+
+    String v_moto_pro= "0";
+    String v_movil_pro= "0";
+    String v_movil_maletero_libre_pro= "0";
+    String v_movil_lujo_pro= "0";
+    String v_camioncito_pro= "0";
+    String v_grua_pro= "0";
+
     String v_radicatoria= "";
 
     String id_empresa="";
@@ -100,9 +123,14 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
         et_materno_pro=(EditText)findViewById(R.id.et_materno_pro);
         sp_expedido_pro=(Spinner)findViewById(R.id.sp_departamento);
         sp_radicatoria=(Spinner)findViewById(R.id.sp_radicatoria);
-        rb_moto=(RadioButton)findViewById(R.id.rb_moto);
-        rb_moto_torito=(RadioButton)findViewById(R.id.rb_moto_torito);
-        rb_movil=(RadioButton)findViewById(R.id.rb_movil);
+
+        rb_moto=(CheckBox) findViewById(R.id.rb_moto);
+        rb_moto_torito=(CheckBox) findViewById(R.id.rb_moto_torito);
+        rb_movil=(CheckBox) findViewById(R.id.rb_movil);
+        rb_maletero_libre=(CheckBox) findViewById(R.id.rb_maletero_libre);
+        rb_lujo=(CheckBox) findViewById(R.id.rb_lujo);
+        rb_camioncito=(CheckBox) findViewById(R.id.rb_camioncito);
+        rb_grua=(CheckBox) findViewById(R.id.rb_grua);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -152,6 +180,12 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
 
             v_moto_pro=bundle.getString("moto_pro","0");
             v_movil_pro=bundle.getString("movil_pro","0");
+            v_movil_maletero_libre_pro=bundle.getString("movil_maletero_libre_pro","0");
+            v_movil_lujo_pro=bundle.getString("movil_lujo_pro","0");
+            v_camioncito_pro=bundle.getString("camioncito_pro","0");
+            v_grua_pro=bundle.getString("grua_pro","0");
+
+
             estado=bundle.getString("estado");
 
 
@@ -169,6 +203,24 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
             {
                 rb_movil.setChecked(true);
             }
+
+            if(v_movil_lujo_pro.equals("1")==true)
+            {
+                rb_lujo.setChecked(true);
+            }
+            if(v_movil_maletero_libre_pro.equals("1")==true)
+            {
+                rb_maletero_libre.setChecked(true);
+            }
+            if(v_camioncito_pro.equals("1")==true)
+            {
+                rb_camioncito.setChecked(true);
+            }
+            if(v_grua_pro.equals("1")==true)
+            {
+                rb_grua.setChecked(true);
+            }
+
         }catch (Exception e)
         {
         }
@@ -197,147 +249,106 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
 
     }
 
+    private void servicio_volley_guardar_vehiculo() {
+        String v_url=getString(R.string.servidor) + "frmTaxi.php?opcion=guardar_vehiculo_pre_registro";
+        try {
+            JSONObject jsonParam= new JSONObject();
+            jsonParam.put("ci", ci);
+            jsonParam.put("placa", et_placa.getText().toString().trim());
+            jsonParam.put("marca", v_marca);
+            jsonParam.put("tipo", v_tipo);
+            jsonParam.put("clase", v_clase);
+            jsonParam.put("modelo", v_modelo);
+            jsonParam.put("color", v_color);
+            jsonParam.put("ci_pro", v_ci_pro);
+            jsonParam.put("nombre_pro", v_nombre_pro);
+            jsonParam.put("paterno_pro", v_paterno_pro);
+            jsonParam.put("materno_pro", v_materno_pro);
+            jsonParam.put("expedido_pro", v_expedido_pro);
+            jsonParam.put("radicatoria", v_radicatoria);
+            jsonParam.put("estado", estado);
 
-    public class Servicio extends AsyncTask<String,Integer,String> {
+            jsonParam.put("movil",v_movil_pro);
+            jsonParam.put("movil_lujo",v_movil_lujo_pro);
+            jsonParam.put("movil_maletero",v_movil_maletero_libre_pro);
+            jsonParam.put("camioncito",v_camioncito_pro);
+            jsonParam.put("grua",v_grua_pro);
+            jsonParam.put("moto", v_moto_pro);
 
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            String cadena = params[0];
-            URL url = null;  // url donde queremos obtener informacion
-            String devuelve = "";
-//guardar datos del conductor
-            if (params[1] == "1") {
-                try {
-                    HttpURLConnection urlConn;
-
-                    DataOutputStream printout;
-                    DataOutputStream input;
-
-                    url = new URL(cadena);
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput(true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Accept", "application/json");
-                    urlConn.connect();
-
-                    //se crea el objeto JSON
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("ci", ci);
-                    jsonParam.put("placa", et_placa.getText().toString().trim());
-                    jsonParam.put("marca", v_marca);
-                    jsonParam.put("tipo", v_tipo);
-                    jsonParam.put("clase", v_clase);
-                    jsonParam.put("modelo", v_modelo);
-                    jsonParam.put("color", v_color);
-                    jsonParam.put("ci_pro", v_ci_pro);
-                    jsonParam.put("nombre_pro", v_nombre_pro);
-                    jsonParam.put("paterno_pro", v_paterno_pro);
-                    jsonParam.put("materno_pro", v_materno_pro);
-                    jsonParam.put("expedido_pro", v_expedido_pro);
-                    jsonParam.put("radicatoria", v_radicatoria);
-                    jsonParam.put("estado", estado);
-                    jsonParam.put("movil",v_movil_pro);
-                    jsonParam.put("moto", v_moto_pro);
+            jsonParam.put("id_empresa", id_empresa);
+            jsonParam.put("nombre_empresa", nombre_empresa);
 
 
-                    jsonParam.put("id_empresa", id_empresa);
-                    jsonParam.put("nombre_empresa", nombre_empresa);
 
-                    //Envio los prametro por metodo post
-                    OutputStream os = urlConn.getOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-                    writer.write(jsonParam.toString());
-                    writer.flush();
-                    writer.close();
+            RequestQueue queue = Volley.newRequestQueue(this);
 
-                    int respuesta = urlConn.getResponseCode();
 
-                    StringBuilder result = new StringBuilder();
+            JsonObjectRequest myRequest= new JsonObjectRequest(
+                    Request.Method.POST,
+                    v_url,
+                    jsonParam,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject respuestaJSON) {
 
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
+                            pDialog.dismiss();
 
-                        String line;
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        while ((line = br.readLine()) != null) {
-                            result.append(line);
+                            try {
+                                suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
+                                if (suceso.getSuceso().equals("1")) {
+                                    estado="1";
+                                    //final
+                                    saltar_imagen_preregistro();
+                                } else if(suceso.getSuceso().equals("2")) {
+                                    mensaje(suceso.getMensaje());
+                                }else
+                                {
+                                    mensaje(suceso.getMensaje());
+                                }
+
+
+
+
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                mensaje("Falla en tu conexión a Internet.");
+                            }
+
                         }
-
-                        //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
-                        JSONObject respuestaJSON = new JSONObject(result.toString());//Creo un JSONObject a partir del
-                        // StringBuilder pasando a cadena.                    }
-
-                        SystemClock.sleep(950);
-
-                        //Accedemos a vector de resultados.
-                        String error = respuestaJSON.getString("suceso");// suceso es el campo en el Json
-                        suceso=new Suceso(respuestaJSON.getString("suceso"),respuestaJSON.getString("mensaje"));
-
-                        if (error.equals("1")) {
-                            devuelve="1";
-                            estado="1";
-                        }  else
-                        {
-                            devuelve="2";
-                        }
-
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    pDialog.dismiss();
+                    mensaje("Falla en tu conexión a Internet.");
                 }
             }
+            ){
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> parametros= new HashMap<>();
+                    parametros.put("content-type","application/json; charset=utf-8");
+                    parametros.put("Authorization","apikey 849442df8f0536d66de700a73ebca-us17");
+                    parametros.put("Accept", "application/json");
 
+                    return  parametros;
+                }
+            };
 
-            return devuelve;
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            //para el progres Dialog
             pDialog = new ProgressDialog(Datos_vehiculo_pre.this);
             pDialog.setTitle(getString(R.string.app_name));
             pDialog.setMessage("Guardando los datos en el sistema. . .");
             pDialog.setIndeterminate(false);
             pDialog.setCancelable(true);
             pDialog.show();
-        }
 
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pDialog.dismiss();//ocultamos proggress dialog
-
-
-            if (s.equals("1")) {
-                saltar_imagen_preregistro();
-            } else if(s.equals("2")) {
-                mensaje(suceso.getMensaje());
-            }
-            else
-            {
-                mensaje("Falla en tu conexión a Internet.");
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(String s) {
-            super.onCancelled(s);
+            queue.add(myRequest);
+        } catch (Exception e) {
+            pDialog.dismiss();
         }
     }
+
+
 
 
     public void guardar_datos_conductor()
@@ -436,6 +447,11 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
                 v_movil_pro="0";
             }
 
+            v_movil_maletero_libre_pro=String.valueOf(rb_maletero_libre.isChecked());
+            v_movil_lujo_pro=String.valueOf(rb_lujo.isChecked());
+            v_camioncito_pro=String.valueOf(rb_camioncito.isChecked());
+            v_grua_pro=String.valueOf(rb_grua.isChecked());
+
             v_marca=et_marca.getText().toString().trim();
             v_tipo=et_tipo.getText().toString().trim();
             v_clase=et_clase.getText().toString().trim();
@@ -452,8 +468,8 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
                             if (v_color.length()>2){
                                 if (v_nombre_pro.length()>2){
                                     if (v_materno_pro.length()>2&&v_paterno_pro.length()>2){
-            Servicio servicio = new Servicio();
-            servicio.execute(getString(R.string.servidor) + "frmTaxi.php?opcion=guardar_vehiculo_pre_registro", "1");// parametro que recibe el doinbackground
+                                        servicio_volley_guardar_vehiculo();
+
                                     }else {
                                         mensaje("Ingrese su apellidos");
                                     }

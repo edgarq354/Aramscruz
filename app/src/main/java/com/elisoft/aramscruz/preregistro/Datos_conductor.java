@@ -95,8 +95,16 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
     String v_paterno_pro= "";
     String v_materno_pro= "";
     String v_expedido_pro= "";
+
+
     String v_moto_pro= "";
     String v_movil_pro= "";
+    String v_movil_maletero_libre_pro= "";
+    String v_movil_lujo_pro= "";
+    String v_camioncito_pro= "";
+    String v_grua_pro= "";
+
+
     String v_estado= "3";
 
     Suceso suceso;
@@ -365,8 +373,15 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
                                     v_paterno_pro= dato.getJSONObject(0).getString("paterno") ;
                                     v_materno_pro= dato.getJSONObject(0).getString("materno") ;
                                     v_expedido_pro= dato.getJSONObject(0).getString("expedido") ;
+
                                     v_moto_pro= dato.getJSONObject(0).getString("moto");
                                     v_movil_pro= dato.getJSONObject(0).getString("movil");
+                                    v_movil_maletero_libre_pro= dato.getJSONObject(0).getString("maletero_libre");
+                                    v_movil_lujo_pro= dato.getJSONObject(0).getString("lujo");
+                                    v_camioncito_pro= dato.getJSONObject(0).getString("camioncito");
+                                    v_grua_pro= dato.getJSONObject(0).getString("grua_torito");
+
+
                                     estado="1";
                                     v_estado="1";
 
@@ -400,8 +415,14 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
                                     v_paterno_pro= "";
                                     v_materno_pro= "";
                                     v_expedido_pro= "";
-                                    v_moto_pro= "";
-                                    v_movil_pro= "";
+
+                                    v_moto_pro= "0";
+                                    v_movil_pro= "0";
+                                    v_movil_maletero_libre_pro="0";
+                                    v_movil_lujo_pro="0";
+                                    v_camioncito_pro="0";
+                                    v_grua_pro="0";
+
                                     v_estado= "";
 
                                     saltar_cargar_datos_vehiculo();
@@ -536,8 +557,17 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
             siguiente.putExtra("nombre_pro", v_nombre_pro);
             siguiente.putExtra("paterno_pro", v_paterno_pro);
             siguiente.putExtra("materno_pro", v_materno_pro);
+
+
             siguiente.putExtra("moto_pro", v_moto_pro);
             siguiente.putExtra("movil_pro", v_movil_pro);
+            siguiente.putExtra("movil_maletero_libre_pro", v_movil_maletero_libre_pro);
+            siguiente.putExtra("movil_lujo_pro", v_movil_lujo_pro);
+            siguiente.putExtra("camioncito_pro", v_camioncito_pro);
+            siguiente.putExtra("grua_pro", v_grua_pro);
+
+
+
             siguiente.putExtra("estado", v_estado);
 
             siguiente.putExtra("expedido",expedido);
