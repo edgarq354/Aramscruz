@@ -179,7 +179,7 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
             genero=bundle.getString("genero");
             correo=bundle.getString("correo");
             celular=bundle.getString("celular");
-            direccion=bundle.getString("direcion");
+            direccion=bundle.getString("direccion");
             categoria=bundle.getString("categoria");
             expedido=bundle.getString("expedido");
             estado=bundle.getString("estado");
@@ -340,6 +340,7 @@ public class Datos_conductor extends AppCompatActivity  implements View.OnClickL
 
             jsonParam.put("nombre_empresa", nombre_empresa);
             jsonParam.put("id_empresa", id_empresa);
+            jsonParam.put("aplicacion", getString(R.string.app_name));
 
             String url=getString(R.string.servidor) + "frmTaxi.php?opcion=guardar_conductor_pre_registro";
             RequestQueue queue = Volley.newRequestQueue(this);

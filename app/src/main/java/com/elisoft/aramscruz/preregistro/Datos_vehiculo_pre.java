@@ -277,6 +277,7 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
 
             jsonParam.put("id_empresa", id_empresa);
             jsonParam.put("nombre_empresa", nombre_empresa);
+            jsonParam.put("aplicacion", getString(R.string.app_name));
 
 
 
@@ -439,18 +440,13 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
             {
                 v_moto_pro="0";
             }
-            if(rb_movil.isChecked()==true)
-            {
-                v_movil_pro="1";
-            }else
-            {
-                v_movil_pro="0";
-            }
 
-            v_movil_maletero_libre_pro=String.valueOf(rb_maletero_libre.isChecked());
-            v_movil_lujo_pro=String.valueOf(rb_lujo.isChecked());
-            v_camioncito_pro=String.valueOf(rb_camioncito.isChecked());
-            v_grua_pro=String.valueOf(rb_grua.isChecked());
+
+            v_movil_pro=obtener_valor_check(rb_movil);
+            v_movil_maletero_libre_pro=obtener_valor_check(rb_maletero_libre);
+            v_movil_lujo_pro=obtener_valor_check(rb_lujo);
+            v_camioncito_pro=obtener_valor_check(rb_camioncito);
+            v_grua_pro=obtener_valor_check(rb_grua);
 
             v_marca=et_marca.getText().toString().trim();
             v_tipo=et_tipo.getText().toString().trim();
@@ -497,6 +493,18 @@ public class Datos_vehiculo_pre extends AppCompatActivity  implements View.OnCli
             mensaje("Por favor ingrese la cedula de identidad del Propietario del vehiculo.");
         }
 
+    }
+
+    public String obtener_valor_check(CheckBox checkBox) {
+        String numero="0";
+        if(checkBox.isChecked()==true)
+        {
+            numero="1";
+        }else
+        {
+            numero="0";
+        }
+        return numero;
     }
 
 
