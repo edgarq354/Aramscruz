@@ -1,6 +1,7 @@
 package com.elisoft.aramscruz.menu_otra_direccion;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -79,6 +80,9 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
+
+
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -104,6 +108,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+
+
+
 
 public class Buscar_direccion_inicio extends AppCompatActivity implements OnMapReadyCallback,View.OnClickListener, GoogleApiClient.OnConnectionFailedListener,
         GoogleApiClient.ConnectionCallbacks,
@@ -674,6 +682,7 @@ bt_fijar_ubicacion.setOnClickListener(this);
     }
 
 
+    @SuppressLint("RestrictedApi")
     private void enableLocationUpdates() {
 
         locRequest = new LocationRequest();
